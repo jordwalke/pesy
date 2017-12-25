@@ -1,0 +1,24 @@
+{
+  "name": "esy-peasy",
+  "version": "0.0.1",
+  "description": "Esy-Peasy: Simple Esy Project Builder With Almost No Configuration",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jordwalke/esy-peasy.git"
+  },
+  "keywords": [
+    "esy",
+    "ocaml",
+    "reason"
+  ],
+  "author": "jordwalke",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jordwalke/esy-peasy/issues"
+  },
+  "homepage": "https://github.com/jordwalke/esy-peasy#readme"
+}
