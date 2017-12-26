@@ -1,6 +1,6 @@
 {
   "name": "esy-peasy",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Esy-Peasy: Simple Esy Project Builder With Almost No Configuration",
   "esy": {
     "install": "cp #{self.root / 'esy-peasy'} #{self.install / 'bin' / 'esy-peasy'}"
