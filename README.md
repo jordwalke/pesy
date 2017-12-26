@@ -20,29 +20,23 @@ esy build
 
 ## How Are The Binary And Library Built?
 
-In general, each package may contain many named "Libraries" which can be
-consumed, but `esy-peasy`produces exactly one sharable library with the
-same name as the package.
-
 - The single `.re` file in `bin/` becomes the `MyProject` executable.
 - The contents of `lib/` becomes the `my-project` named library.
 - Your binary `.re` file can automatically see the `my-project` library as the
   `YourProjectLib` module.
-- When other packages depend on your package, they can then use your
-  `my-project` library, which will then allow them to see the `YourProjectLib` module.
+- Packages that depend on your package can then use your
+  `my-project` library, which then allows them to see the `YourProjectLib` module.
 
-## Testing Your Binary:
+## Testing The Binary:
 
-As with any `esy` project, use the `esy x any-command-here` command to build
-and install your package for the duration of `any-command-here` so that
-`YourPackage` binary will be visible. You can pass arguments to your binary
-program.
+Use the standard `esy x any-command-here` command to run `any-command-here` as
+if you had installed the package. For example `esy x YourPackage --args` builds
+and runs your `YourPackage` executable with arguments.
 
-## Customizations:
+## Customize:
 - Omit the `lib/` directory if everything fits into the single file in `bin/`.
 - You may rename the `bin/Index.re` file to be
   `bin/YourProjectNameCamelCased.re`.
-- Nothing else.
 
 ## Adding New Package Dependencies:
 - `esy add @opam/dep-name@version` automatically builds and adds a new
@@ -60,7 +54,8 @@ from plain `npm`.
 
 ```
 esy release bin
-cd _release/bin-darwin && npm publish --tag darwin
+cd _release/bin-darwin
+npm publish --tag darwin
 ```
 
 ## Tradeoffs:
