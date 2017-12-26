@@ -1,13 +1,9 @@
 # esy-peasy
 
-The easiest way to make native Reason programs and libraries.
-
-- Low-to-no configuration.
+- Easiest way to make native Reason programs and libraries.
 - Merlin and LSP integration out of the box.
-- Easily move to another build system when your project grows.
-
-A package named `my-project` builds a single library matching the package name
-`my-project`, and builds a single binary named `MyProject`.
+- For a project named `my-project`, produces single sharable library named
+  `my-project` and a single executable named `MyProject`.
 
 ## Build An Example:
 
@@ -20,23 +16,20 @@ esy build
 
 ## Make It Your Own Package:
 
-- Change the `name` field in the `package.json` (to `my-project` for example).
+- Change the `name` field in the `package.json` and rebuild.
 
 ## How Are The Binary And Library Built?
 
 In general, each package may contain many named "Libraries" which can be
-consumed, but `esy-peasy` keeps it simple, producing one named library per
-esy package.
-
-For an `esy` package named `my-project`:
+consumed, but `esy-peasy`produces exactly one sharable library with the
+same name as the package.
 
 - The single `.re` file in `bin/` becomes the `MyProject` executable.
 - The contents of `lib/` becomes the `my-project` named library.
 - Your binary `.re` file can automatically see the `my-project` library as the
   `YourProjectLib` module.
-- The `my-project` library is made available to packages that depend on you.
-  Once they depend on your package and compile against the `my-project`
-  library, they too will be able to use the `YourProject` module.
+- When other packages depend on your package, they can then use your
+  `my-project` library, which will then allow them to see the `YourProjectLib` module.
 
 ## Testing Your Binary:
 
@@ -48,27 +41,29 @@ program.
 ## Customizations:
 - Omit the `lib/` directory if everything fits into the single file in `bin/`.
 - You may rename the `bin/Index.re` file to be
-  `bin/YourProjectNameCamelCased.re`. Nothing else.
+  `bin/YourProjectNameCamelCased.re`.
+- Nothing else.
 
 ## Adding New Package Dependencies:
-- Run `esy add @opam/dep-name@version` to automatically build and add a new
+- `esy add @opam/dep-name@version` automatically builds and adds a new
   dependency to `package.json`.
-- Each package conatains several "Libraries". Find the name of
-  the library you wish to consume by running `esy ls-libs`.
-- Add that library name to `package.json` under a section like: `"peasyLibs": ["the-library-name"]`.
+- Find the name of the library inside of that new package by running `esy ls-libs`.
+- Add that *library* name to `package.json` like this: `"peasyLibs": ["the-library-name"]`.
 - Use that library in your code and run `esy build`.
 
-
-```sh
-esy x YourPackage --arg-to-your-package
-```
+> Note: After adding/building a new dependency you can use `esy ls-modules` to see
+  which named modules become available to you by adding the `peasyLibs` entry.
 
 ## Publish Prebuilt binaries of your executables to `npm`.
+Use `esy` to make prebuilt binary releases of your program that can be installed
+from plain `npm`.
 
+```
+esy release bin
+cd _release/bin-darwin && npm publish --tag darwin
+```
 
 ## Tradeoffs:
-`esy-peasy` has almost no configuration, and so it regenerates all build
-config. This is fast enough for small projects, but once your small app grows
-larger, you'll want to switch to a more full-featured build system. You can
-"eject" out of `esy-peasy` and begin customizing it from there.
-
+`esy-peasy` is good for rapidly making new small executables/libraries. Once they
+grow, you'll want to "eject out" of `esy-peasy` and begin customizing using a more
+advanced build system.
