@@ -3,8 +3,12 @@
   "version": "0.0.1",
   "description": "Esy-Peasy: Simple Esy Project Builder With Almost No Configuration",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "esy": {
+    "install": "cp #{self.root / 'esy-peasy'} #{self.install / 'bin' / 'esy-peasy'}"
+  },
+  "dependencies": {
+    "@opam/jbuilder": "*",
+    "@esy-ocaml/esy-installer": "^0.0.0"
   },
   "repository": {
     "type": "git",
