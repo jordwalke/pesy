@@ -25,7 +25,7 @@ BIN_JBUILD_FILE="${BIN_DIR}/jbuild"
 # Hacky, but fast and v8-less parsing of the important field in json file.
 # Some of these command might fail if there's no field in the package.json so
 # we fall back to empty string on failure.
-DEPENDENCY_LIBRARIES_WITH=$(tr -d '[:",\n' < package.json | grep -E -o 'peasyLibs .*\]') || DEPENDENCY_LIBRARIES_WITH=""
+DEPENDENCY_LIBRARIES_WITH=$(tr -d '[:",\n' < package.json | grep -E -o 'peasyLibs .*?\]') || DEPENDENCY_LIBRARIES_WITH=""
 DEPENDENCY_LIBRARIES="${DEPENDENCY_LIBRARIES_WITH:9}" || DEPENDENCY_LIBRARIES=""
 # Trim off the final dangling ]
 DEPENDENCY_LIBRARIES=${DEPENDENCY_LIBRARIES::${#DEPENDENCY_LIBRARIES}-1} || DEPENDENCY_LIBRARIES=""
