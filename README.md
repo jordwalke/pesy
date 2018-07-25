@@ -3,7 +3,8 @@
 - Easy way to develop native Reason libraries and binaries.
 - `esy pesy` keeps your Dune build config up to date based on `package.json` config.
 
-<imag src="./images/screenshot.png" />
+![screenshot](./images/screenshot.png "Demo")
+
 
 ## How:
 
