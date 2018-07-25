@@ -1,62 +1,72 @@
-# esy-peasy
+# pesy: json driven Native Builds for Reason
 
 - Easiest way to make native Reason programs and libraries.
 - Merlin and LSP integration out of the box.
-- For a project named `my-project`, produces single sharable library named
-  `my-project` and a single executable named `MyProject`.
 
 ## Build An Example:
 
 ```sh
 npm install -g esy@next
 git clone git@github.com:jordwalke/esy-peasy-starter.git
+
 esy install
+esy pesy    # Use pesy to configure build from package.json
 esy build
+
 ```
 
 ## Make It Your Own Package:
 
-- Change the `name` field in the `package.json` and rebuild.
+Change the `name` fields of `buildDirs` specified in the `package.json` and
+rerun:
 
-## How Are The Binary And Library Built?
+```
+esy pesy
+esy build
+```
 
-- The single `.re` file in `bin/` becomes the `MyProject` executable.
-- The contents of `lib/` becomes the `my-project` named library.
-- Your binary `.re` file can automatically see the `my-project` library as the
-  `YourProjectLib` module.
-- Packages that depend on your package can then use your
-  `my-project` library, which then allows them to see the `YourProjectLib` module.
-
-## Testing The Binary:
+## Testing Binaries:
 
 Use the standard `esy x any-command-here` command to run `any-command-here` as
-if you had installed the package. For example `esy x YourPackage --args` builds
-and runs your `YourPackage` executable with arguments.
+if you had installed the package. For example `esy x YourPackage.exe --args`
+builds and runs your built `YourPackage.exe` executable with arguments.
 
-## Customize:
-- Omit the `lib/` directory if everything fits into the single file in `bin/`.
-- You may rename the `bin/Index.re` file to be
-  `bin/YourProjectNameCamelCased.re`.
 
-## Adding New Package Dependencies:
-- `esy add @opam/dep-name@version` automatically builds and adds a new
-  dependency to `package.json`.
-- Find the name of the library inside of that new package by running `esy ls-libs`.
-- Add that *library* name to `package.json` like this: `"peasyLibs": ["the-library-name"]`.
-- Use that library in your code and run `esy build`.
+## Consuming New Library Dependencies:
 
-> Note: After adding/building a new dependency you can use `esy ls-modules` to see
-  which named modules become available to you by adding the `peasyLibs` entry.
+- Add dependencies to `dependencies` in `package.json`.
+- Add the name of that new dependencies *library*  to `package.json`'s
+  `buildDirs` section that you want to use the library within. For example, if
+  your project builds a library in the `exampleLib/` directory, and you want it
+  to depend on a library named `bos.top` from an opam package named `bos`,
+  change the `package.json` to look like this:
+   
+    "name": "my-package",
+    "dependencies": {
+      "@opam/bos": "*"
+    },
+    "buildDirs": {
+      "exampleLib": {
+        "namespace": "Examples",
+        "name": "my-package.example-lib",
+        "require": [ "bos.top" ]
+      }
+    }
 
-## Publish Prebuilt binaries of your executables to `npm`.
-Use `esy` to make prebuilt binary releases of your program that can be installed
-from plain `npm`.
-
+- Then run:
 ```
-esy release bin
-cd _release/bin-darwin
-npm publish --tag darwin
+esy install  # Fetch dependency sources
+esy pesy     # Configure the build based on package.json
+esy build    # Do the build
 ```
+ 
+> Note: After adding/building a new dependency you can use `esy ls-libs` to see
+> which named libraries become available to you by adding the package
+> dependency.
+
+> Note: You can also use `esy ls-modules` to see which named _modules_ become
+> available to you from those libraries.
+
 
 ## Tradeoffs:
 `esy-peasy` is good for rapidly making new small executables/libraries. Once they

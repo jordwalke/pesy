@@ -1,17 +1,23 @@
 {
-  "name": "esy-peasy",
-  "version": "0.0.5",
-  "description": "Esy-Peasy: Simple Esy Project Builder With Almost No Configuration",
+  "name": "pesy",
+  "version": "0.0.6",
+  "description": "\"Esy Pesy\" Project Manager, near zero config With Almost No Configuration",
   "esy": {
-    "install": "cp #{self.root / 'esy-peasy'} #{self.install / 'bin' / 'esy-peasy'}"
+    "install": [
+      "cp #{self.root / 'pesy'} #{self.install / 'bin' / 'pesy'}",
+      "cp #{self.root / 'pesy-header.sh'} #{self.install / 'bin' / 'pesy-header.sh'}",
+      "cp #{self.root / 'pesy-footer.template.sh'} #{self.install / 'bin' / 'pesy-footer.template.sh'}",
+      "cp #{self.root / 'pesy-genBin.template.sh'} #{self.install / 'bin' / 'pesy-genBin.template.sh'}",
+      "cp #{self.root / 'pesy-genLib.template.sh'} #{self.install / 'bin' / 'pesy-genLib.template.sh'}"
+    ]
   },
   "dependencies": {
-    "@opam/jbuilder": "*",
+    "@opam/dune": "*",
     "@esy-ocaml/esy-installer": "^0.0.0"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jordwalke/esy-peasy.git"
+    "url": "git+https://github.com/jordwalke/pesy.git"
   },
   "keywords": [
     "esy",
@@ -22,7 +28,7 @@
   "author": "jordwalke",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/jordwalke/esy-peasy/issues"
+    "url": "https://github.com/jordwalke/pesy/issues"
   },
-  "homepage": "https://github.com/jordwalke/esy-peasy#readme"
+  "homepage": "https://github.com/jordwalke/pesy#readme"
 }

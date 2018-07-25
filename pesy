@@ -1,0 +1,250 @@
+#!/bin/bash
+
+set -e
+set -u
+
+UNDER_ON=`tput smul` || UNDER_ON=''
+UNDER_OFF=`tput rmul` || UNDER_OFF=''
+BOLD=`tput bold`  || BOLD=''   # Select bold mode
+REV=`tput rev` || REV=''      # Select bold mode
+BLACK=`tput setaf 0` || BLACK=''
+RED=`tput setaf 1` || RED=''
+GREEN=`tput setaf 2` || GREEN=''
+YELLOW=`tput setaf 3` || YELLOW=''
+BLUE=`tput setaf 4` || BLUE=''
+MAGENTA=`tput setaf 5` || MAGENTA=''
+CYAN=`tput setaf 6` || CYAN=''
+WHITE=`tput setaf 7` || WHITE=''
+RESET=`tput sgr0` || RESET=''
+
+
+# JSON.sh prints out all the fields in the form of:
+# ["key"] value
+# where value may be an array.
+# pipe the output of that to
+#
+# cat package.json | ./JSON.sh | sed -n 's;\["peasyLibs"\][[:space:]]*\(.*\);\1;p'
+#
+# Where (in that case) you would be extracting the value for `peasyLibs` field.
+# use [[:space:]] character class to ensure mac/linux compat.
+#
+# You can extract deeper fields by searching for fields like ["esy","build"].
+
+# Need to avoid spinning up node every build command.
+# MD5_OF_PACKAGE
+# $cur__target_dir has some problems right now.
+# $fixed_cur__target_dir="$cur__original_root"
+
+# We can build out of source, then simply copy over the .merlin files because
+# those are whitelisted! We can also prepare them.
+
+# The two modes:
+# update: Update the jbuild files based on package.json
+# build:  Perform the build from files updated in update mode.
+# Only way to determine that we are part of actual build vs. command line
+# update mode is by looking for noprofile.
+
+PACKAGE_NAME="${cur__name}"
+echo ""
+echo "${BOLD}${PACKAGE_NAME}@${cur__version}${RESET}"
+
+# Gnu uppercasing extensions to sed don't exist on mac.
+PACKAGE_NAME_CAMEL=$(echo "${PACKAGE_NAME}" | perl -pe 's/([a-z0-9])-([a-zA-Z0-9])/$1\U$2/g')
+PACKAGE_NAME_CAMEL_UC=$(tr '[:lower:]' '[:upper:]' <<< "${PACKAGE_NAME_CAMEL:0:1}")${PACKAGE_NAME_CAMEL:1}
+NAMESPACE="${PACKAGE_NAME_CAMEL_UC}"
+PUBLIC_LIB_NAME="${PACKAGE_NAME}.lib"
+
+
+GEN_EVERYTHING="${cur__root}/_build/genEverything.sh"
+PESY_DIR_CACHE="${cur__root}/_build/pesyDirCache.txt"
+GEN_MD5="${cur__root}/_build/packageJson.md5"
+mkdir -p "${cur__root}/_build"
+
+CUR_MD5="${RANDOM}"
+CUR_MD5=$(md5 "${cur__root}/package.json")
+#Uncomment out above when stable
+if [ -f  "${GEN_MD5}" ]; then
+  PREV_MD5=$(cat "${GEN_MD5}")
+else
+  PREV_MD5=""
+fi
+printf "%s" "${CUR_MD5}" > "${GEN_MD5}"
+
+
+if [[ "$CUR_MD5" == "$PREV_MD5" ]]; then
+  "${GEN_EVERYTHING}"
+  exit 0
+fi
+
+echo "" > "${GEN_EVERYTHING}"
+chmod 777 "${GEN_EVERYTHING}"
+
+# It can be expensive to find the pesy implementation dir.
+if [ -f  "${PESY_DIR_CACHE}" ]; then
+  PESY_DIR=$(cat "${PESY_DIR_CACHE}")
+else
+  SOURCE="${BASH_SOURCE[0]}"
+  while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+    PESY_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null && pwd )"
+    SOURCE="$(readlink "$SOURCE")"
+    [[ $SOURCE != /* ]] && SOURCE="$PESY_DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+  done
+  PESY_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null && pwd )"
+  echo "${PESY_DIR}" >  "${PESY_DIR_CACHE}"
+fi
+
+cat "${PESY_DIR}/pesy-header.sh" >> "${GEN_EVERYTHING}"
+
+cat <<EOT >> "${GEN_EVERYTHING}"
+PACKAGE_NAME="${PACKAGE_NAME}"
+PACKAGE_NAME_CAMEL_UC="${PACKAGE_NAME_CAMEL_UC}"
+NAMESPACE="${NAMESPACE}"
+PUBLIC_LIB_NAME="${PUBLIC_LIB_NAME}"
+EOT
+
+function genLib() {
+  DIR="$1"
+  LIB_NAME="$2"
+  sed  -e "s;<DIR>;${DIR};g; s;<LIB_NAME>;${LIB_NAME};g" "${PESY_DIR}/pesy-genLib.template.sh"  >> "${GEN_EVERYTHING}"
+}
+
+
+# Generate the config updater per bin directory.
+function genBin() {
+  DIR="$1"
+  EXE_NAME="$2"
+  sed  -e "s;<DIR>;${DIR};g; s;<EXE_NAME>;${EXE_NAME};g" "${PESY_DIR}/pesy-genBin.template.sh"  >> "${GEN_EVERYTHING}"
+}
+
+
+# Hacky, but fast and v8-less parsing of the important field in json file.
+# Spit out some variable names that are of the form <DIR>_FEATURE.
+# Then that secondary script can access those variables in generated code.
+
+OIFS=$IFS;
+
+
+# Initial pass through all names to set some defaults.
+ALL_DIR_TO_NAME=$(./JSON.sh < package.json |  sed -n 's;\["buildDirs","\([^"]*\)","name"\][[:space:]]*"\([^"]*\)";\1=\2;p')
+ALL_DIR_TO_NAME=$(printf "%s" "$ALL_DIR_TO_NAME" | tr -s '\n' '|')
+if [ -z "${ALL_DIR_TO_NAME}" ]; then
+  # By default, bin and lib
+  ALL_DIR_TO_NAME="bin=${PACKAGE_NAME}.exe|lib=${PACKAGE_NAME}.lib|"
+fi
+IFS="|";
+ALL_DIR_TO_NAME_ARR=($ALL_DIR_TO_NAME);
+# Set deafults for each package before then overriding them.
+SEEN_A_LIB="false"
+for ((i=0; i<${#ALL_DIR_TO_NAME_ARR[@]}; ++i)); do
+  IFS="=";
+  DIR_AND_NAME="${ALL_DIR_TO_NAME_ARR[$i]}"
+  DIR_AND_NAME_ARR=($DIR_AND_NAME);
+  DIR=${DIR_AND_NAME_ARR[0]}
+  NAME=${DIR_AND_NAME_ARR[1]}
+  if [[ "${NAME}" == *.lib ]]; then 
+    # We will let a single library default to the namespace of the package.
+    if [[ "${SEEN_A_LIB}" == "false" ]]; then
+      echo "#Default Namespace" >> "${GEN_EVERYTHING}"
+      echo "${DIR}_NAMESPACE=\"${PACKAGE_NAME_CAMEL_UC}\"" >> "${GEN_EVERYTHING}"
+    else
+      # Else if there's more than one lib each must set their namespace.
+      echo "#Default Namespace, When More Than One Library Present" >> "${GEN_EVERYTHING}"
+      echo "${DIR}_NAMESPACE=\"\"" >> "${GEN_EVERYTHING}"
+    fi
+    SEEN_A_LIB="true"
+  fi
+  echo "#Default Requires" >> "${GEN_EVERYTHING}"
+  echo "${DIR}_REQUIRE=\"\"" >> "${GEN_EVERYTHING}"
+  echo "#Default Main Module" >> "${GEN_EVERYTHING}"
+  echo "${DIR}_MAIN_MODULE=\"Index\"" >> "${GEN_EVERYTHING}"
+done
+
+
+
+
+ALL_DIR_TO_NAMESPACE=$(./JSON.sh < package.json |  sed -n 's;\["buildDirs","\([^"]*\)","namespace"\][[:space:]]*\(.*\);\1=\2;p')
+ALL_DIR_TO_NAMESPACE=$(printf "%s" "$ALL_DIR_TO_NAMESPACE" | tr -s '\n' '|')
+IFS="|";
+ALL_DIR_TO_NAMESPACE_ARR=($ALL_DIR_TO_NAMESPACE);
+for ((i=0; i<${#ALL_DIR_TO_NAMESPACE_ARR[@]}; ++i)); do
+  IFS="=";
+  DIR_AND_NAMESPACE="${ALL_DIR_TO_NAMESPACE_ARR[$i]}"
+  DIR_AND_NAMESPACE_ARR=($DIR_AND_NAMESPACE);
+  DIR=${DIR_AND_NAMESPACE_ARR[0]}
+  NAMESPACE=${DIR_AND_NAMESPACE_ARR[1]}
+  echo "${DIR}_NAMESPACE=\"${NAMESPACE}\"" >> "${GEN_EVERYTHING}"
+done
+
+ALL_DIR_TO_REQUIRE=$(./JSON.sh < package.json |  sed -n 's;\["buildDirs","\([^"]*\)","require"\][[:space:]]*\(.*\);\1=\2;p')
+ALL_DIR_TO_REQUIRE=$(printf "$ALL_DIR_TO_REQUIRE" | tr -s '["],' ' ')
+ALL_DIR_TO_REQUIRE=$(printf "%s" "$ALL_DIR_TO_REQUIRE" | tr -s '\n' '|')
+IFS="|";
+ALL_DIR_TO_REQUIRE_ARR=($ALL_DIR_TO_REQUIRE);
+for ((i=0; i<${#ALL_DIR_TO_REQUIRE_ARR[@]}; ++i)); do
+  IFS="=";
+  DIR_AND_REQUIRE="${ALL_DIR_TO_REQUIRE_ARR[$i]}"
+  DIR_AND_REQUIRE_ARR=($DIR_AND_REQUIRE);
+  DIR=${DIR_AND_REQUIRE_ARR[0]}
+  REQUIRE=${DIR_AND_REQUIRE_ARR[1]}
+  # This one is an array so we take an extra step to strip out [ ] and ""
+  echo "${DIR}_REQUIRE=\"${REQUIRE}\"" >> "${GEN_EVERYTHING}"
+done
+
+# Print a summary of each named target.
+for ((i=0; i<${#ALL_DIR_TO_NAME_ARR[@]}; ++i)); do
+  IFS="=";
+  DIR_AND_NAME="${ALL_DIR_TO_NAME_ARR[$i]}"
+  DIR_AND_NAME_ARR=($DIR_AND_NAME);
+  DIR=${DIR_AND_NAME_ARR[0]}
+  NAME=${DIR_AND_NAME_ARR[1]}
+  if [[ "$i" == $(expr "${#ALL_DIR_TO_NAME_ARR[@]}" - "1") ]]; then
+    IS_LAST="last"
+  else
+    IS_LAST="not-last"
+  fi
+
+  if [[ "${NAME}" == *.exe ]]; then 
+    echo "printDirectory \"$DIR\" \"name:    $NAME\" \"main:    \${${DIR}_MAIN_MODULE}.re\" \"require:\$${DIR}_REQUIRE\"" "$IS_LAST" >> "$GEN_EVERYTHING"
+  else
+    if [[ "${NAME}" == "${PACKAGE_NAME}"\.* ]]; then 
+      echo "printDirectory \"$DIR\" \"library name: $NAME\" \"namespace:    \$${DIR}_NAMESPACE\" \"require:     \$${DIR}_REQUIRE\"" "$IS_LAST" >> "$GEN_EVERYTHING"
+    else
+      # Errors will be caught later
+      true
+    fi
+  fi
+done
+
+# Perform the updates/refresh per target or build.
+for ((i=0; i<${#ALL_DIR_TO_NAME_ARR[@]}; ++i)); do
+  IFS="=";
+  DIR_AND_NAME="${ALL_DIR_TO_NAME_ARR[$i]}"
+  DIR_AND_NAME_ARR=($DIR_AND_NAME);
+  DIR=${DIR_AND_NAME_ARR[0]}
+  NAME=${DIR_AND_NAME_ARR[1]}
+
+  if [[ "${NAME}" == "" ]]; then 
+    printf "\\n%sMisconfigured package.json:%s" "${RED}${BOLD}" "${RESET}"
+    printf "\\n  - Missing/empty name for buildDirs/%s\\n\\n" "${DIR}"
+    exit 1
+  fi
+  if [[ "${NAME}" == *.exe ]]; then 
+    genBin "$DIR" "$NAME"
+  else
+    if [[ "${NAME}" == "${PACKAGE_NAME}"\.* ]]; then 
+      genLib "$DIR" "$NAME"
+    else
+      printf "\\n%sMisconfigured package.json:%s" "${RED}${BOLD}" "${RESET}"
+      printf "\\n"
+      printf "\\n  buildDirs.%s.name (\"%s\")\\n" "${DIR}" "${NAME}" 
+      printf "\\n  %s- Name should be any-name.exe to build a binary or%s" "${YELLOW}${BOLD}" "$RESET"
+      printf "\\n  %s- Name should be %s.suffix to build a library, where 'suffix' is anything but 'exe'%s\\n\\n" "${YELLOW}${BOLD}" "${PACKAGE_NAME}" "$RESET"
+      exit 1
+    fi
+  fi
+done
+IFS=$OIFS;
+
+sed  -e "s;<DIR>;${DIR};g; s;<LIB_NAME>;${LIB_NAME};g" "${PESY_DIR}/pesy-footer.template.sh" >> "${GEN_EVERYTHING}"
+
+"${GEN_EVERYTHING}"
