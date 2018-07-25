@@ -1,7 +1,26 @@
-# pesy: json driven Native Builds for Reason
+# pesy: json config for Native Reason builds
 
-- Easiest way to make native Reason programs and libraries.
-- Merlin and LSP integration out of the box.
+- Easy way to develop native Reason libraries and binaries.
+- `esy pesy` keeps your Dune build config up to date based on `package.json` config.
+
+<imag src="./images/screenshot.png" />
+
+## How:
+
+- Add package `"pesy": "*"` to your `dependencies` in your `esy` project.
+- Change your `esy` `build` field in `package.json` to be:
+
+```json
+"esy": {
+  "build": "pesy"
+}
+```
+
+```
+esy install
+esy pesy
+esy build
+```
 
 ## Build An Example:
 
