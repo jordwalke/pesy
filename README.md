@@ -112,3 +112,18 @@ esy build    # Do the build
 `esy-peasy` is good for rapidly making new small executables/libraries. Once they
 grow, you'll want to "eject out" of `esy-peasy` and begin customizing using a more
 advanced build system.
+
+
+### Supported Config
+Not all config is supported. This is just a proof of concept. If you'd like to
+add support for more config fields, PRs are welcomed.
+
+**Binaries**
+- `name`: The name of the binary
+- `require`: Libraries required
+
+**Libraries**
+- `name`: The name of the library
+- `namespace`: The name that other modules will _see_ your module as, within
+  their source code, if they `require` your library.
+- `require`: Libraries required
