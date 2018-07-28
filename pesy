@@ -66,7 +66,7 @@ if [ -x "$(command -v md5)" ]; then
   CUR_MD5=$(md5 "${cur__root}/package.json")
 else
   if [ -x "$(command -v md5sum)" ]; then
-    CUR_MD5=$(md5 "${cur__root}/package.json")
+    CUR_MD5=$(md5sum "${cur__root}/package.json")
   else
     echo "Aborting build because no checksum utilities are found (md5/md5sum)"
     exit 1

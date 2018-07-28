@@ -1,4 +1,4 @@
-# pesy: json config for Native Reason builds
+# pesy: Native Reason Project from Json.
 
 - Easy way to develop native Reason libraries and binaries.
 - `esy pesy` keeps your Dune build config up to date based on `package.json` config.
