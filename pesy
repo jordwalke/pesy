@@ -165,10 +165,7 @@ for ((i=0; i<${#ALL_DIR_TO_NAME_ARR[@]}; ++i)); do
   fi
   echo "#Default Requires" >> "${GEN_EVERYTHING}"
   echo "${DIR}_REQUIRE=\"\"" >> "${GEN_EVERYTHING}"
-  echo "#Default Main Module" >> "${GEN_EVERYTHING}"
-  echo "${DIR}_MAIN_MODULE=\"Index\"" >> "${GEN_EVERYTHING}"
 done
-
 
 
 
@@ -183,6 +180,19 @@ for ((i=0; i<${#ALL_DIR_TO_NAMESPACE_ARR[@]}; ++i)); do
   DIR=${DIR_AND_NAMESPACE_ARR[0]}
   NAMESPACE=${DIR_AND_NAMESPACE_ARR[1]}
   echo "${DIR}_NAMESPACE=\"${NAMESPACE}\"" >> "${GEN_EVERYTHING}"
+done
+
+ALL_DIR_TO_MAIN=$("${PESY_DIR}/pesy-JSON.sh" < "${cur__root}/package.json" |  sed -n 's;\["buildDirs","\([^"]*\)","main"\][[:space:]]*\(.*\);\1=\2;p')
+ALL_DIR_TO_MAIN=$(printf "%s" "$ALL_DIR_TO_MAIN" | tr -s '\n' '|')
+IFS="|";
+ALL_DIR_TO_MAIN_ARR=($ALL_DIR_TO_MAIN);
+for ((i=0; i<${#ALL_DIR_TO_MAIN_ARR[@]}; ++i)); do
+  IFS="=";
+  DIR_AND_MAIN="${ALL_DIR_TO_MAIN_ARR[$i]}"
+  DIR_AND_MAIN_ARR=($DIR_AND_MAIN);
+  DIR=${DIR_AND_MAIN_ARR[0]}
+  MAIN=${DIR_AND_MAIN_ARR[1]}
+  echo "${DIR}_MAIN_MODULE=\"${MAIN}\"" >> "${GEN_EVERYTHING}"
 done
 
 ALL_DIR_TO_REQUIRE=$("${PESY_DIR}/pesy-JSON.sh" < "${cur__root}/package.json" |  sed -n 's;\["buildDirs","\([^"]*\)","require"\][[:space:]]*\(.*\);\1=\2;p')
@@ -214,7 +224,7 @@ for ((i=0; i<${#ALL_DIR_TO_NAME_ARR[@]}; ++i)); do
   fi
 
   if [[ "${NAME}" == *.exe ]]; then 
-    echo "printDirectory \"$DIR\" \"name:    $NAME\" \"main:    \${${DIR}_MAIN_MODULE}.re\" \"require:\$${DIR}_REQUIRE\"" "$IS_LAST" >> "$GEN_EVERYTHING"
+    echo "printDirectory \"$DIR\" \"name:    $NAME\" \"main:    \${${DIR}_MAIN_MODULE:-\$DEFAULT_MAIN_MODULE_NAME}\" \"require:\$${DIR}_REQUIRE\"" "$IS_LAST" >> "$GEN_EVERYTHING"
   else
     if [[ "${NAME}" == "${PACKAGE_NAME}"\.* ]]; then 
       echo "printDirectory \"$DIR\" \"library name: $NAME\" \"namespace:    \$${DIR}_NAMESPACE\" \"require:     \$${DIR}_REQUIRE\"" "$IS_LAST" >> "$GEN_EVERYTHING"

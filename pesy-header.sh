@@ -24,6 +24,8 @@ LAST_EXE_NAME=""
 NOTIFIED_USER="false"
 BUILD_STALE_PROBLEM="false"
 
+DEFAULT_MAIN_MODULE_NAME="Index"
+
 function notifyUser() {
   if [ "${NOTIFIED_USER}" == "false" ]; then
     echo ""

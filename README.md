@@ -1,29 +1,50 @@
 # pesy: Native Reason Project from Json.
 
-- Easy way to develop native Reason libraries and binaries.
-- `esy pesy` keeps your Dune build config up to date based on `package.json` config.
+- Use `package.json` to declare libraries and executables.
+- Generates `dune` config per directory.
+
 
 ![screenshot](./images/screenshot.png "Demo")
 
 
-## How:
+### Use As Your Package Build Command:
 
-- Add package `"pesy": "*"` to your `dependencies` in your `esy` project.
-- Change your `esy` `build` field in `package.json` to be:
+**1. Add a dependency on `pesy`, and configure `buildDirs`:**
 
-```json
-"esy": {
-  "build": "pesy"
-}
-```
+    "name": "my-package",
+    "dependencies": {
+      "pesy": "*"
+    },
+    "bin": {
+      "name": "my-package.exe",
+      "require": [
+        "my-package.lib"
+      ]
+    },
+    "buildDirs": {
+      "exampleLib": {
+        "namespace": "Examples",
+        "name": "my-package.example-lib",
+        "require": [ "bos.top" ]
+      }
+    }
 
-```
+**2.Install and Build:**
+
+```sh
 esy install
-esy pesy
+esy pesy  # Generate the project build config from json
 esy build
 ```
+### Use As Standalone To Create Projects
 
-## Build An Example:
+**Coming Soon** Not Yet Implemented
+
+
+## Example Project:
+
+The following example project already has an example config. You can base your
+project off of this one.
 
 ```sh
 npm install -g esy@next
@@ -35,10 +56,9 @@ esy build
 
 ```
 
-## Make It Your Own Package:
-
-Change the `name` fields of `buildDirs` specified in the `package.json` and
-rerun:
+- Change the `name` of the package, and names of libraries in `buildDirs`
+  accordingly.
+- Then rerun:
 
 ```
 esy pesy
