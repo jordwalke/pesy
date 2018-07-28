@@ -8,8 +8,10 @@
       "cp #{self.root / 'pesy-header.sh'} #{self.install / 'bin' / 'pesy-header.sh'}",
       "cp #{self.root / 'pesy-footer.template.sh'} #{self.install / 'bin' / 'pesy-footer.template.sh'}",
       "cp #{self.root / 'pesy-genBin.template.sh'} #{self.install / 'bin' / 'pesy-genBin.template.sh'}",
-      "cp #{self.root / 'pesy-genLib.template.sh'} #{self.install / 'bin' / 'pesy-genLib.template.sh'}"
-    ]
+      "cp #{self.root / 'pesy-genLib.template.sh'} #{self.install / 'bin' / 'pesy-genLib.template.sh'}",
+      "cp #{self.root / 'pesy-JSON.sh'} #{self.install / 'bin' / 'pesy-JSON.sh'}"
+    ],
+    "buildsInSource": "_build"
   },
   "dependencies": {
     "@opam/dune": "*"

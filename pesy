@@ -18,12 +18,12 @@ WHITE=`tput setaf 7` || WHITE=''
 RESET=`tput sgr0` || RESET=''
 
 
-# JSON.sh prints out all the fields in the form of:
+# pesy-JSON.sh prints out all the fields in the form of:
 # ["key"] value
 # where value may be an array.
 # pipe the output of that to
 #
-# cat package.json | ./JSON.sh | sed -n 's;\["peasyLibs"\][[:space:]]*\(.*\);\1;p'
+# cat package.json | ./pesy-JSON.sh | sed -n 's;\["peasyLibs"\][[:space:]]*\(.*\);\1;p'
 #
 # Where (in that case) you would be extracting the value for `peasyLibs` field.
 # use [[:space:]] character class to ensure mac/linux compat.
@@ -61,8 +61,18 @@ GEN_MD5="${cur__root}/_build/packageJson.md5"
 mkdir -p "${cur__root}/_build"
 
 CUR_MD5="${RANDOM}"
-CUR_MD5=$(md5 "${cur__root}/package.json")
-#Uncomment out above when stable
+
+if [ -x "$(command -v md5)" ]; then
+  CUR_MD5=$(md5 "${cur__root}/package.json")
+else
+  if [ -x "$(command -v md5sum)" ]; then
+    CUR_MD5=$(md5 "${cur__root}/package.json")
+  else
+    echo "Aborting build because no checksum utilities are found (md5/md5sum)"
+    exit 1
+  fi
+fi
+
 if [ -f  "${GEN_MD5}" ]; then
   PREV_MD5=$(cat "${GEN_MD5}")
 else
@@ -125,7 +135,7 @@ OIFS=$IFS;
 
 
 # Initial pass through all names to set some defaults.
-ALL_DIR_TO_NAME=$(./JSON.sh < package.json |  sed -n 's;\["buildDirs","\([^"]*\)","name"\][[:space:]]*"\([^"]*\)";\1=\2;p')
+ALL_DIR_TO_NAME=$("${PESY_DIR}/pesy-JSON.sh" < "${cur__root}/package.json" |  sed -n 's;\["buildDirs","\([^"]*\)","name"\][[:space:]]*"\([^"]*\)";\1=\2;p')
 ALL_DIR_TO_NAME=$(printf "%s" "$ALL_DIR_TO_NAME" | tr -s '\n' '|')
 if [ -z "${ALL_DIR_TO_NAME}" ]; then
   # By default, bin and lib
@@ -162,7 +172,7 @@ done
 
 
 
-ALL_DIR_TO_NAMESPACE=$(./JSON.sh < package.json |  sed -n 's;\["buildDirs","\([^"]*\)","namespace"\][[:space:]]*\(.*\);\1=\2;p')
+ALL_DIR_TO_NAMESPACE=$("${PESY_DIR}/pesy-JSON.sh" < "${cur__root}/package.json" |  sed -n 's;\["buildDirs","\([^"]*\)","namespace"\][[:space:]]*\(.*\);\1=\2;p')
 ALL_DIR_TO_NAMESPACE=$(printf "%s" "$ALL_DIR_TO_NAMESPACE" | tr -s '\n' '|')
 IFS="|";
 ALL_DIR_TO_NAMESPACE_ARR=($ALL_DIR_TO_NAMESPACE);
@@ -175,7 +185,7 @@ for ((i=0; i<${#ALL_DIR_TO_NAMESPACE_ARR[@]}; ++i)); do
   echo "${DIR}_NAMESPACE=\"${NAMESPACE}\"" >> "${GEN_EVERYTHING}"
 done
 
-ALL_DIR_TO_REQUIRE=$(./JSON.sh < package.json |  sed -n 's;\["buildDirs","\([^"]*\)","require"\][[:space:]]*\(.*\);\1=\2;p')
+ALL_DIR_TO_REQUIRE=$("${PESY_DIR}/pesy-JSON.sh" < "${cur__root}/package.json" |  sed -n 's;\["buildDirs","\([^"]*\)","require"\][[:space:]]*\(.*\);\1=\2;p')
 ALL_DIR_TO_REQUIRE=$(printf "$ALL_DIR_TO_REQUIRE" | tr -s '["],' ' ')
 ALL_DIR_TO_REQUIRE=$(printf "%s" "$ALL_DIR_TO_REQUIRE" | tr -s '\n' '|')
 IFS="|";
