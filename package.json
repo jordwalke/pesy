@@ -1,6 +1,6 @@
 {
   "name": "pesy",
-  "version": "0.0.9",
+  "version": "0.1.9",
   "description": "\"Esy Pesy\" Project Manager, near zero config With Almost No Configuration",
   "esy": {
     "install": [

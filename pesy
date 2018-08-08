@@ -55,10 +55,10 @@ NAMESPACE="${PACKAGE_NAME_CAMEL_UC}"
 PUBLIC_LIB_NAME="${PACKAGE_NAME}.lib"
 
 
-GEN_EVERYTHING="${cur__root}/_build/genEverything.sh"
-PESY_DIR_CACHE="${cur__root}/_build/pesyDirCache.txt"
-GEN_MD5="${cur__root}/_build/packageJson.md5"
-mkdir -p "${cur__root}/_build"
+GEN_EVERYTHING="${cur__target_dir}/genEverything.sh"
+PESY_DIR_CACHE="${cur__target_dir}/pesyDirCache.txt"
+GEN_MD5="${cur__target_dir}/packageJson.md5"
+mkdir -p "${cur__target_dir}"
 
 CUR_MD5="${RANDOM}"
 
@@ -165,6 +165,10 @@ for ((i=0; i<${#ALL_DIR_TO_NAME_ARR[@]}; ++i)); do
   fi
   echo "#Default Requires" >> "${GEN_EVERYTHING}"
   echo "${DIR}_REQUIRE=\"\"" >> "${GEN_EVERYTHING}"
+  echo "#Default Flags" >> "${GEN_EVERYTHING}"
+  echo "${DIR}_FLAGS=\"\"" >> "${GEN_EVERYTHING}"
+  echo "${DIR}_OCAMLC_FLAGS=\"\"" >> "${GEN_EVERYTHING}"
+  echo "${DIR}_OCAMLOPT_FLAGS=\"\"" >> "${GEN_EVERYTHING}"
 done
 
 
@@ -208,6 +212,51 @@ for ((i=0; i<${#ALL_DIR_TO_REQUIRE_ARR[@]}; ++i)); do
   REQUIRE=${DIR_AND_REQUIRE_ARR[1]}
   # This one is an array so we take an extra step to strip out [ ] and ""
   echo "${DIR}_REQUIRE=\"${REQUIRE}\"" >> "${GEN_EVERYTHING}"
+done
+
+ALL_DIR_TO_FLAGS=$("${PESY_DIR}/pesy-JSON.sh" < "${cur__root}/package.json" |  sed -n 's;\["buildDirs","\([^"]*\)","flags"\][[:space:]]*\(.*\);\1=\2;p')
+ALL_DIR_TO_FLAGS=$(printf "$ALL_DIR_TO_FLAGS" | tr -s '["],' ' ')
+ALL_DIR_TO_FLAGS=$(printf "%s" "$ALL_DIR_TO_FLAGS" | tr -s '\n' '|')
+IFS="|";
+ALL_DIR_TO_FLAGS_ARR=($ALL_DIR_TO_FLAGS);
+for ((i=0; i<${#ALL_DIR_TO_FLAGS_ARR[@]}; ++i)); do
+  IFS="=";
+  DIR_AND_FLAGS="${ALL_DIR_TO_FLAGS_ARR[$i]}"
+  DIR_AND_FLAGS_ARR=($DIR_AND_FLAGS);
+  DIR=${DIR_AND_FLAGS_ARR[0]}
+  FLAGS=${DIR_AND_FLAGS_ARR[1]}
+  # This one is an array so we take an extra step to strip out [ ] and ""
+  echo "${DIR}_FLAGS=\"${FLAGS}\"" >> "${GEN_EVERYTHING}"
+done
+
+ALL_DIR_TO_OCAMLC_FLAGS=$("${PESY_DIR}/pesy-JSON.sh" < "${cur__root}/package.json" |  sed -n 's;\["buildDirs","\([^"]*\)","ocamlcFlags"\][[:space:]]*\(.*\);\1=\2;p')
+ALL_DIR_TO_OCAMLC_FLAGS=$(printf "$ALL_DIR_TO_OCAMLC_FLAGS" | tr -s '["],' ' ')
+ALL_DIR_TO_OCAMLC_FLAGS=$(printf "%s" "$ALL_DIR_TO_OCAMLC_FLAGS" | tr -s '\n' '|')
+IFS="|";
+ALL_DIR_TO_OCAMLC_FLAGS_ARR=($ALL_DIR_TO_OCAMLC_FLAGS);
+for ((i=0; i<${#ALL_DIR_TO_OCAMLC_FLAGS_ARR[@]}; ++i)); do
+  IFS="=";
+  DIR_AND_OCAMLC_FLAGS="${ALL_DIR_TO_OCAMLC_FLAGS_ARR[$i]}"
+  DIR_AND_OCAMLC_FLAGS_ARR=($DIR_AND_OCAMLC_FLAGS);
+  DIR=${DIR_AND_OCAMLC_FLAGS_ARR[0]}
+  FLAGS=${DIR_AND_OCAMLC_FLAGS_ARR[1]}
+  # This one is an array so we take an extra step to strip out [ ] and ""
+  echo "${DIR}_OCAMLC_FLAGS=\"${FLAGS}\"" >> "${GEN_EVERYTHING}"
+done
+
+ALL_DIR_TO_OCAMLOPT_FLAGS=$("${PESY_DIR}/pesy-JSON.sh" < "${cur__root}/package.json" |  sed -n 's;\["buildDirs","\([^"]*\)","ocamloptFlags"\][[:space:]]*\(.*\);\1=\2;p')
+ALL_DIR_TO_OCAMLOPT_FLAGS=$(printf "$ALL_DIR_TO_OCAMLOPT_FLAGS" | tr -s '["],' ' ')
+ALL_DIR_TO_OCAMLOPT_FLAGS=$(printf "%s" "$ALL_DIR_TO_OCAMLOPT_FLAGS" | tr -s '\n' '|')
+IFS="|";
+ALL_DIR_TO_OCAMLOPT_FLAGS_ARR=($ALL_DIR_TO_OCAMLOPT_FLAGS);
+for ((i=0; i<${#ALL_DIR_TO_OCAMLOPT_FLAGS_ARR[@]}; ++i)); do
+  IFS="=";
+  DIR_AND_OCAMLOPT_FLAGS="${ALL_DIR_TO_OCAMLOPT_FLAGS_ARR[$i]}"
+  DIR_AND_OCAMLOPT_FLAGS_ARR=($DIR_AND_OCAMLOPT_FLAGS);
+  DIR=${DIR_AND_OCAMLOPT_FLAGS_ARR[0]}
+  FLAGS=${DIR_AND_OCAMLOPT_FLAGS_ARR[1]}
+  # This one is an array so we take an extra step to strip out [ ] and ""
+  echo "${DIR}_OCAMLOPT_FLAGS=\"${FLAGS}\"" >> "${GEN_EVERYTHING}"
 done
 
 # Print a summary of each named target.
