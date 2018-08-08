@@ -131,8 +131,9 @@ if [ -z "${cur__name}" ]; then
   printf "\\n%sSuccess!%s Created %s\\n\\n" "${BOLD}${GREEN}" "${RESET}" "${PWD}/package.json"
   printf "Now, run:\\n"
   printf "\\n"
-  printf "    esy install\\n"
-  printf "    esy build\\n"
+  printf "    esy install     # Install Dependencies\\n"
+  printf "    esy pesy        # Configures Build\\n"
+  printf "    esy build       # Build Project\\n"
   printf "\\n"
   exit 0
 fi
