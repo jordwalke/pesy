@@ -1,7 +1,8 @@
 {
   "name": "pesy",
-  "version": "0.1.9",
-  "description": "\"Esy Pesy\" Project Manager, near zero config With Almost No Configuration",
+  "version": "0.2.0",
+  "description": "\"Esy Pesy\" - Your Esy Assistant.",
+  "bin" : { "pesy" : "./pesy" },
   "esy": {
     "install": [
       "cp #{self.root / 'pesy'} #{self.install / 'bin' / 'pesy'}",

@@ -1,7 +1,6 @@
 #!/bin/bash
 
 set -e
-set -u
 
 UNDER_ON=`tput smul` || UNDER_ON=''
 UNDER_OFF=`tput rmul` || UNDER_OFF=''
@@ -43,6 +42,102 @@ RESET=`tput sgr0` || RESET=''
 # build:  Perform the build from files updated in update mode.
 # Only way to determine that we are part of actual build vs. command line
 # update mode is by looking for noprofile.
+
+
+SHOW_HELP="false"
+if [[ "$1" == "help" ]]; then
+  SHOW_HELP="true"
+else
+  if [[ "$1" == "--help" ]]; then
+    SHOW_HELP="true"
+  fi
+fi
+
+if [[ "$SHOW_HELP" == "true" ]]; then
+  printf "\\n%spesy%s%s: Your simple esy assistant.%s" "${BOLD}${GREEN}" "${RESET}" "${BOLD}" "${RESET}"
+  printf "\\n"
+  printf "\\n  %spesy --help%s " "$BOLD" "$RESET"
+  printf "\\n    Show this help screen."
+  printf "\\n"
+  printf "\\n  %spesy%s " "$BOLD" "$RESET"
+  printf "\\n    Running pesy in a fresh directory will help you set up an esy project."
+  printf "\\n"
+  printf "\\n  %sesy pesy%s (in a project that uses esy)" "$BOLD" "$RESET"
+  printf "\\n    Once you have an esy project, 'esy pesy' will keep your project up to date."
+  printf "\\n    (make sure pesy is listed as a devDependency)."
+  printf "\\n\\n\\n"
+  exit 0
+fi
+
+if [ -z "${cur__name}" ]; then
+  # Running bare on the command line, not in an esy environment.
+  HAS_JSON="false"
+  if [ -f  "${PWD}/package.json" ]; then
+    HAS_JSON="true"
+  else
+    if [ -f  "${PWD}/esy.json" ]; then
+      HAS_JSON="true"
+    fi
+  fi
+  if [[ "$HAS_JSON" == "true" ]]; then
+    printf "\\n%sIncorrect Usage:%s" "${RED}${BOLD}" "${RESET}"
+    printf "\\n"
+    printf "\\npesy should only be run via 'esy pesy', unless you want to create a new project"
+    printf "\\nin a fresh directory. This does not appear to be a fresh directory because"
+    printf "\\nit contains a package.json or esy.json file.\n\n"
+    printf "\\nType esy --help for more assistance.\n\n"
+    exit 1
+  fi
+
+  printf "\\n%sCreating new package at ${PWD}/package.json.%s\\n" "${GREEN}${BOLD}" "$RESET"
+  printf "\\n"
+  printf "Enter new package name: " 
+  read ANSWER
+  # Gnu uppercasing extensions to sed don't exist on mac.
+  PACKAGE_NAME_CAMEL=$(echo "${ANSWER}" | perl -pe 's/([a-z0-9])-([a-zA-Z0-9])/$1\U$2/g')
+  PACKAGE_NAME_CAMEL_UC=$(tr '[:lower:]' '[:upper:]' <<< "${PACKAGE_NAME_CAMEL:0:1}")${PACKAGE_NAME_CAMEL:1}
+  NAMESPACE="${PACKAGE_NAME_CAMEL_UC}"
+  PUBLIC_LIB_NAME="${ANSWER}.lib"
+  printf "{\\n"                                                              >> "${PWD}/package.json"
+  printf "  \"name\": \"%s\",\\n" "$ANSWER"                                  >> "${PWD}/package.json"
+  printf "  \"version\": \"0.0.0\",\\n"                                      >> "${PWD}/package.json"
+  printf "  \"description\": \"My Project\",\\n"                             >> "${PWD}/package.json"
+  printf "  \"esy\": {\\n"                                                   >> "${PWD}/package.json"
+  printf "    \"build\": \"pesy refmterr dune build -p #{self.name}\"\\n"    >> "${PWD}/package.json"
+  printf "  },\\n"                                                           >> "${PWD}/package.json"
+  printf "  \"buildDirs\": {\\n"                                             >> "${PWD}/package.json"
+  printf "    \"lib\": {\\n"                                                 >> "${PWD}/package.json"
+  printf "      \"name\": \"%s\",\\n" "${ANSWER}.lib"                        >> "${PWD}/package.json"
+  printf "      \"namespace\": \"%s\"\\n" "${PACKAGE_NAME_CAMEL_UC}"         >> "${PWD}/package.json"
+  printf "    },\\n"                                                         >> "${PWD}/package.json"
+  printf "    \"bin\": {\\n"                                                 >> "${PWD}/package.json"
+  printf "      \"name\": \"%s\"\\n" "${PACKAGE_NAME_CAMEL_UC}.exe"          >> "${PWD}/package.json"
+  printf "    }\\n"                                                          >> "${PWD}/package.json"
+  printf "  },\\n"                                                           >> "${PWD}/package.json"
+  printf "  \"dependencies\": {\\n"                                          >> "${PWD}/package.json"
+  printf "    \"@opam/dune\": \"*\",\\n"                                     >> "${PWD}/package.json"
+  printf "    \"@esy-ocaml/reason\": \"*\",\\n"                              >> "${PWD}/package.json"
+  printf "    \"refmterr\": \"*\",\\n"                                       >> "${PWD}/package.json"
+  printf "    \"ocaml\": \"~4.6.0\",\\n"                                      >> "${PWD}/package.json"
+  printf "    \"pesy\": \"*\"\\n"                                           >> "${PWD}/package.json"
+  printf "  },\\n"                                                           >> "${PWD}/package.json"
+  printf "  \"devDependencies\": {\\n"                                       >> "${PWD}/package.json"
+  printf "    \"@esy-ocaml/merlin\": \"*\",\\n"                              >> "${PWD}/package.json"
+  printf "    \"ocaml\": \"~4.6.0\"\\n"                                      >> "${PWD}/package.json"
+  printf "  }\\n"                                                            >> "${PWD}/package.json"
+  printf "}\\n"                                                              >> "${PWD}/package.json"
+
+
+  printf "\\n%sSuccess!%s Created %s\\n\\n" "${BOLD}${GREEN}" "${RESET}" "${PWD}/package.json"
+  printf "Now, run:\\n"
+  printf "\\n"
+  printf "    esy install\\n"
+  printf "    esy build\\n"
+  printf "\\n"
+  exit 0
+fi
+
+set -u
 
 PACKAGE_NAME="${cur__name}"
 echo ""
