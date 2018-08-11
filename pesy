@@ -2,21 +2,6 @@
 
 set -e
 
-UNDER_ON=`tput smul` || UNDER_ON=''
-UNDER_OFF=`tput rmul` || UNDER_OFF=''
-BOLD=`tput bold`  || BOLD=''   # Select bold mode
-REV=`tput rev` || REV=''      # Select bold mode
-BLACK=`tput setaf 0` || BLACK=''
-RED=`tput setaf 1` || RED=''
-GREEN=`tput setaf 2` || GREEN=''
-YELLOW=`tput setaf 3` || YELLOW=''
-BLUE=`tput setaf 4` || BLUE=''
-MAGENTA=`tput setaf 5` || MAGENTA=''
-CYAN=`tput setaf 6` || CYAN=''
-WHITE=`tput setaf 7` || WHITE=''
-RESET=`tput sgr0` || RESET=''
-
-
 # pesy-JSON.sh prints out all the fields in the form of:
 # ["key"] value
 # where value may be an array.
@@ -44,6 +29,20 @@ RESET=`tput sgr0` || RESET=''
 # update mode is by looking for noprofile.
 
 
+UNDER_ON=`tput smul` || UNDER_ON=''
+UNDER_OFF=`tput rmul` || UNDER_OFF=''
+BOLD=`tput bold`  || BOLD=''   # Select bold mode
+REV=`tput rev` || REV=''      # Select bold mode
+BLACK=`tput setaf 0` || BLACK=''
+RED=`tput setaf 1` || RED=''
+GREEN=`tput setaf 2` || GREEN=''
+YELLOW=`tput setaf 3` || YELLOW=''
+BLUE=`tput setaf 4` || BLUE=''
+MAGENTA=`tput setaf 5` || MAGENTA=''
+CYAN=`tput setaf 6` || CYAN=''
+WHITE=`tput setaf 7` || WHITE=''
+RESET=`tput sgr0` || RESET=''
+
 SHOW_HELP="false"
 if [[ "$1" == "help" ]]; then
   SHOW_HELP="true"
@@ -69,73 +68,41 @@ if [[ "$SHOW_HELP" == "true" ]]; then
   exit 0
 fi
 
-if [ -z "${cur__name}" ]; then
-  # Running bare on the command line, not in an esy environment.
-  HAS_JSON="false"
-  if [ -f  "${PWD}/package.json" ]; then
-    HAS_JSON="true"
+
+# It can be expensive to find the pesy implementation dir.
+if [ -z "${cur__target_dir}" ]; then
+  RECOMPUTE_PESY_DIR="true"
+  RECORD_PESY_DIR="false"
+else
+  mkdir -p "${cur__target_dir}"
+  PESY_DIR_CACHE="${cur__target_dir}/pesyDirCache.txt"
+  if [ -f  "${PESY_DIR_CACHE}" ]; then
+    RECOMPUTE_PESY_DIR="false"
+    RECORD_PESY_DIR="false"
   else
-    if [ -f  "${PWD}/esy.json" ]; then
-      HAS_JSON="true"
-    fi
+    RECOMPUTE_PESY_DIR="true"
+    RECORD_PESY_DIR="true"
   fi
-  if [[ "$HAS_JSON" == "true" ]]; then
-    printf "\\n%sIncorrect Usage:%s" "${RED}${BOLD}" "${RESET}"
-    printf "\\n"
-    printf "\\npesy should only be run via 'esy pesy', unless you want to create a new project"
-    printf "\\nin a fresh directory. This does not appear to be a fresh directory because"
-    printf "\\nit contains a package.json or esy.json file.\n\n"
-    printf "\\nType esy --help for more assistance.\n\n"
-    exit 1
-  fi
+fi
+if [ "${RECOMPUTE_PESY_DIR}" == "true" ]; then
+  SOURCE="${BASH_SOURCE[0]}"
+  while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+    PESY_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null && pwd )"
+    SOURCE="$(readlink "$SOURCE")"
+    [[ $SOURCE != /* ]] && SOURCE="$PESY_DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+  done
+  PESY_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null && pwd )"
+else
+  PESY_DIR=$(cat "${PESY_DIR_CACHE}")
+fi
 
-  printf "\\n%sCreating new package at ${PWD}/package.json.%s\\n" "${GREEN}${BOLD}" "$RESET"
-  printf "\\n"
-  printf "Enter new package name: " 
-  read ANSWER
-  # Gnu uppercasing extensions to sed don't exist on mac.
-  PACKAGE_NAME_CAMEL=$(echo "${ANSWER}" | perl -pe 's/([a-z0-9])-([a-zA-Z0-9])/$1\U$2/g')
-  PACKAGE_NAME_CAMEL_UC=$(tr '[:lower:]' '[:upper:]' <<< "${PACKAGE_NAME_CAMEL:0:1}")${PACKAGE_NAME_CAMEL:1}
-  NAMESPACE="${PACKAGE_NAME_CAMEL_UC}"
-  PUBLIC_LIB_NAME="${ANSWER}.lib"
-  printf "{\\n"                                                              >> "${PWD}/package.json"
-  printf "  \"name\": \"%s\",\\n" "$ANSWER"                                  >> "${PWD}/package.json"
-  printf "  \"version\": \"0.0.0\",\\n"                                      >> "${PWD}/package.json"
-  printf "  \"description\": \"My Project\",\\n"                             >> "${PWD}/package.json"
-  printf "  \"esy\": {\\n"                                                   >> "${PWD}/package.json"
-  printf "    \"build\": \"pesy refmterr dune build -p #{self.name}\"\\n"    >> "${PWD}/package.json"
-  printf "  },\\n"                                                           >> "${PWD}/package.json"
-  printf "  \"buildDirs\": {\\n"                                             >> "${PWD}/package.json"
-  printf "    \"lib\": {\\n"                                                 >> "${PWD}/package.json"
-  printf "      \"name\": \"%s\",\\n" "${ANSWER}.lib"                        >> "${PWD}/package.json"
-  printf "      \"namespace\": \"%s\"\\n" "${PACKAGE_NAME_CAMEL_UC}"         >> "${PWD}/package.json"
-  printf "    },\\n"                                                         >> "${PWD}/package.json"
-  printf "    \"bin\": {\\n"                                                 >> "${PWD}/package.json"
-  printf "      \"name\": \"%s\"\\n" "${PACKAGE_NAME_CAMEL_UC}.exe"          >> "${PWD}/package.json"
-  printf "    }\\n"                                                          >> "${PWD}/package.json"
-  printf "  },\\n"                                                           >> "${PWD}/package.json"
-  printf "  \"dependencies\": {\\n"                                          >> "${PWD}/package.json"
-  printf "    \"@opam/dune\": \"*\",\\n"                                     >> "${PWD}/package.json"
-  printf "    \"@esy-ocaml/reason\": \"*\",\\n"                              >> "${PWD}/package.json"
-  printf "    \"refmterr\": \"*\",\\n"                                       >> "${PWD}/package.json"
-  printf "    \"ocaml\": \"~4.6.0\",\\n"                                      >> "${PWD}/package.json"
-  printf "    \"pesy\": \"*\"\\n"                                           >> "${PWD}/package.json"
-  printf "  },\\n"                                                           >> "${PWD}/package.json"
-  printf "  \"devDependencies\": {\\n"                                       >> "${PWD}/package.json"
-  printf "    \"@esy-ocaml/merlin\": \"*\",\\n"                              >> "${PWD}/package.json"
-  printf "    \"ocaml\": \"~4.6.0\"\\n"                                      >> "${PWD}/package.json"
-  printf "  }\\n"                                                            >> "${PWD}/package.json"
-  printf "}\\n"                                                              >> "${PWD}/package.json"
-
-
-  printf "\\n%sSuccess!%s Created %s\\n\\n" "${BOLD}${GREEN}" "${RESET}" "${PWD}/package.json"
-  printf "Now, run:\\n"
-  printf "\\n"
-  printf "    esy install     # Install Dependencies\\n"
-  printf "    esy pesy        # Configures Build\\n"
-  printf "    esy build       # Build Project\\n"
-  printf "\\n"
+if [ -z "${cur__name}" ]; then
+  source "${PESY_DIR}/pesy-create.sh"
   exit 0
+fi
+
+if [ "${RECORD_PESY_DIR}" == "true" ]; then
+  echo "${PESY_DIR}" >  "${PESY_DIR_CACHE}"
 fi
 
 set -u
@@ -143,13 +110,6 @@ set -u
 PACKAGE_NAME="${cur__name}"
 echo ""
 echo "${BOLD}${PACKAGE_NAME}@${cur__version}${RESET}"
-
-# Gnu uppercasing extensions to sed don't exist on mac.
-PACKAGE_NAME_CAMEL=$(echo "${PACKAGE_NAME}" | perl -pe 's/([a-z0-9])-([a-zA-Z0-9])/$1\U$2/g')
-PACKAGE_NAME_CAMEL_UC=$(tr '[:lower:]' '[:upper:]' <<< "${PACKAGE_NAME_CAMEL:0:1}")${PACKAGE_NAME_CAMEL:1}
-NAMESPACE="${PACKAGE_NAME_CAMEL_UC}"
-PUBLIC_LIB_NAME="${PACKAGE_NAME}.lib"
-
 
 GEN_EVERYTHING="${cur__target_dir}/genEverything.sh"
 PESY_DIR_CACHE="${cur__target_dir}/pesyDirCache.txt"
@@ -174,36 +134,32 @@ if [ -f  "${GEN_MD5}" ]; then
 else
   PREV_MD5=""
 fi
-printf "%s" "${CUR_MD5}" > "${GEN_MD5}"
-
 
 if [[ "$CUR_MD5" == "$PREV_MD5" ]]; then
   "${GEN_EVERYTHING}"
   exit 0
+else
+  printf "%s" "${CUR_MD5}" > "${GEN_MD5}"
 fi
+
+####### OKAY NOW YOU CAN PUT ALL THE SLOW STUFF UNDER HERE #########
 
 echo "" > "${GEN_EVERYTHING}"
 chmod 777 "${GEN_EVERYTHING}"
 
-# It can be expensive to find the pesy implementation dir.
-if [ -f  "${PESY_DIR_CACHE}" ]; then
-  PESY_DIR=$(cat "${PESY_DIR_CACHE}")
-else
-  SOURCE="${BASH_SOURCE[0]}"
-  while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
-    PESY_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null && pwd )"
-    SOURCE="$(readlink "$SOURCE")"
-    [[ $SOURCE != /* ]] && SOURCE="$PESY_DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
-  done
-  PESY_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null && pwd )"
-  echo "${PESY_DIR}" >  "${PESY_DIR_CACHE}"
-fi
+# Gnu uppercasing extensions to sed don't exist on mac.
+source "${PESY_DIR}/pesy-name-utils.sh"
+PACKAGE_NAME_UPPER_CAMEL=$(upperCamelCasify "${PACKAGE_NAME}")
+NAMESPACE="${PACKAGE_NAME_UPPER_CAMEL}"
+PUBLIC_LIB_NAME="${PACKAGE_NAME}.lib"
+
+
 
 cat "${PESY_DIR}/pesy-header.sh" >> "${GEN_EVERYTHING}"
 
 cat <<EOT >> "${GEN_EVERYTHING}"
 PACKAGE_NAME="${PACKAGE_NAME}"
-PACKAGE_NAME_CAMEL_UC="${PACKAGE_NAME_CAMEL_UC}"
+PACKAGE_NAME_UPPER_CAMEL="${PACKAGE_NAME_UPPER_CAMEL}"
 NAMESPACE="${NAMESPACE}"
 PUBLIC_LIB_NAME="${PUBLIC_LIB_NAME}"
 EOT
@@ -251,7 +207,7 @@ for ((i=0; i<${#ALL_DIR_TO_NAME_ARR[@]}; ++i)); do
     # We will let a single library default to the namespace of the package.
     if [[ "${SEEN_A_LIB}" == "false" ]]; then
       echo "#Default Namespace" >> "${GEN_EVERYTHING}"
-      echo "${DIR}_NAMESPACE=\"${PACKAGE_NAME_CAMEL_UC}\"" >> "${GEN_EVERYTHING}"
+      echo "${DIR}_NAMESPACE=\"${PACKAGE_NAME_UPPER_CAMEL}\"" >> "${GEN_EVERYTHING}"
     else
       # Else if there's more than one lib each must set their namespace.
       echo "#Default Namespace, When More Than One Library Present" >> "${GEN_EVERYTHING}"
@@ -265,8 +221,8 @@ for ((i=0; i<${#ALL_DIR_TO_NAME_ARR[@]}; ++i)); do
   echo "${DIR}_FLAGS=\"\"" >> "${GEN_EVERYTHING}"
   echo "${DIR}_OCAMLC_FLAGS=\"\"" >> "${GEN_EVERYTHING}"
   echo "${DIR}_OCAMLOPT_FLAGS=\"\"" >> "${GEN_EVERYTHING}"
+  echo "${DIR}_C_NAMES=\"\"" >> "${GEN_EVERYTHING}"
 done
-
 
 
 ALL_DIR_TO_NAMESPACE=$("${PESY_DIR}/pesy-JSON.sh" < "${cur__root}/package.json" |  sed -n 's;\["buildDirs","\([^"]*\)","namespace"\][[:space:]]*\(.*\);\1=\2;p')
@@ -355,6 +311,22 @@ for ((i=0; i<${#ALL_DIR_TO_OCAMLOPT_FLAGS_ARR[@]}; ++i)); do
   echo "${DIR}_OCAMLOPT_FLAGS=\"${FLAGS}\"" >> "${GEN_EVERYTHING}"
 done
 
+ALL_DIR_TO_C_NAMES=$("${PESY_DIR}/pesy-JSON.sh" < "${cur__root}/package.json" |  sed -n 's;\["buildDirs","\([^"]*\)","cNames"\][[:space:]]*\(.*\);\1=\2;p')
+ALL_DIR_TO_C_NAMES=$(printf "$ALL_DIR_TO_C_NAMES" | tr -s '["],' ' ')
+ALL_DIR_TO_C_NAMES=$(printf "%s" "$ALL_DIR_TO_C_NAMES" | tr -s '\n' '|')
+IFS="|";
+ALL_DIR_TO_C_NAMES_ARR=($ALL_DIR_TO_C_NAMES);
+for ((i=0; i<${#ALL_DIR_TO_C_NAMES_ARR[@]}; ++i)); do
+  IFS="=";
+  DIR_AND_C_NAMES="${ALL_DIR_TO_C_NAMES_ARR[$i]}"
+  DIR_AND_C_NAMES_ARR=($DIR_AND_C_NAMES);
+  DIR=${DIR_AND_C_NAMES_ARR[0]}
+  FLAGS=${DIR_AND_C_NAMES_ARR[1]}
+  # This one is an array so we take an extra step to strip out [ ] and ""
+  echo "${DIR}_C_NAMES=\"${FLAGS}\"" >> "${GEN_EVERYTHING}"
+done
+
+
 # Print a summary of each named target.
 for ((i=0; i<${#ALL_DIR_TO_NAME_ARR[@]}; ++i)); do
   IFS="=";
@@ -410,6 +382,6 @@ for ((i=0; i<${#ALL_DIR_TO_NAME_ARR[@]}; ++i)); do
 done
 IFS=$OIFS;
 
-sed  -e "s;<DIR>;${DIR};g; s;<LIB_NAME>;${LIB_NAME};g" "${PESY_DIR}/pesy-footer.template.sh" >> "${GEN_EVERYTHING}"
+cat "${PESY_DIR}/pesy-footer.template.sh" >> "${GEN_EVERYTHING}"
 
 "${GEN_EVERYTHING}"

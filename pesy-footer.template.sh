@@ -52,12 +52,14 @@ if [ "${MODE}" == "build" ]; then
       dune build -p "${PACKAGE_NAME}" || BUILD_FAILED="true"
     fi
     if [ -z "$BUILD_FAILED" ]; then
+      printf "\\n%s  Build Succeeded!%s " "${BOLD}${GREEN}" "${RESET}"
       if [ -z "$LAST_EXE_NAME" ]; then
+        printf "\\n\\n"
         true
       else
         # If we built an EXE
-        printf "\\n%s  Build Succeeded!%s %sTo test a binary:%s\\n\\n" "${BOLD}${GREEN}" "${RESET}" "${BOLD}" "${RESET}"
-        printf "    esy x %s\\n\\n\\n" "${LAST_EXE_NAME}"
+        printf "%sTo test a binary:%s\\n\\n" "${BOLD}" "${RESET}"
+        printf "      esy x %s\\n\\n\\n" "${LAST_EXE_NAME}"
       fi
       true
     else

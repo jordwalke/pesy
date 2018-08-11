@@ -3,18 +3,11 @@
 set -e
 set -u
 
-UNDER_ON=`tput smul` || UNDER_ON=''
-UNDER_OFF=`tput rmul` || UNDER_OFF=''
 BOLD=`tput bold`  || BOLD=''   # Select bold mode
-REV=`tput rev` || REV=''      # Select bold mode
 BLACK=`tput setaf 0` || BLACK=''
 RED=`tput setaf 1` || RED=''
 GREEN=`tput setaf 2` || GREEN=''
 YELLOW=`tput setaf 3` || YELLOW=''
-BLUE=`tput setaf 4` || BLUE=''
-MAGENTA=`tput setaf 5` || MAGENTA=''
-CYAN=`tput setaf 6` || CYAN=''
-WHITE=`tput setaf 7` || WHITE=''
 RESET=`tput sgr0` || RESET=''
 
 MODE="build"
@@ -43,27 +36,29 @@ function notifyUser() {
 
 
 function printDirectory() {
-  DIR=$1
-  NAME=$2
-  NAMESPACE=$3
-  REQUIRE=$4
-  IS_LAST=$5
-  printf "│\\n"
-  PREFIX=""
-  if [[ "$IS_LAST" == "last" ]]; then
-    printf "└─%s/\\n" "$DIR"
-    PREFIX="    "
-  else
-    printf "├─%s/\\n" "$DIR"
-    PREFIX="│   "
-  fi
-  printf "%s%s\\n" "$PREFIX" "$NAME"
-  printf "%s%s\\n" "$PREFIX" "$NAMESPACE"
-  if [ -z "$REQUIRE" ]; then
-    true
-  else
-    if [ "$REQUIRE" != " " ]; then
-      printf   "%s%s\\n" "$PREFIX" "$REQUIRE"
+  if [ "${MODE}" != "build" ]; then
+    DIR=$1
+    NAME=$2
+    NAMESPACE=$3
+    REQUIRE=$4
+    IS_LAST=$5
+    printf "│\\n"
+    PREFIX=""
+    if [[ "$IS_LAST" == "last" ]]; then
+      printf "└─%s/\\n" "$DIR"
+      PREFIX="    "
+    else
+      printf "├─%s/\\n" "$DIR"
+      PREFIX="│   "
+    fi
+    printf "%s%s\\n" "$PREFIX" "$NAME"
+    printf "%s%s\\n" "$PREFIX" "$NAMESPACE"
+    if [ -z "$REQUIRE" ]; then
+      true
+    else
+      if [ "$REQUIRE" != " " ]; then
+        printf   "%s%s\\n" "$PREFIX" "$REQUIRE"
+      fi
     fi
   fi
 }

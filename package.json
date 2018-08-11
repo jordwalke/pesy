@@ -1,6 +1,6 @@
 {
   "name": "pesy",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "\"Esy Pesy\" - Your Esy Assistant.",
   "bin" : { "pesy" : "./pesy" },
   "esy": {
@@ -10,7 +10,9 @@
       "cp #{self.root / 'pesy-footer.template.sh'} #{self.install / 'bin' / 'pesy-footer.template.sh'}",
       "cp #{self.root / 'pesy-genBin.template.sh'} #{self.install / 'bin' / 'pesy-genBin.template.sh'}",
       "cp #{self.root / 'pesy-genLib.template.sh'} #{self.install / 'bin' / 'pesy-genLib.template.sh'}",
-      "cp #{self.root / 'pesy-JSON.sh'} #{self.install / 'bin' / 'pesy-JSON.sh'}"
+      "cp #{self.root / 'pesy-JSON.sh'} #{self.install / 'bin' / 'pesy-JSON.sh'}",
+      "cp #{self.root / 'pesy-create.sh'} #{self.install / 'bin' / 'pesy-create.sh'}",
+      "cp #{self.root / 'pesy-name-utils.sh'} #{self.install / 'bin' / 'pesy-name-utils.sh'}"
     ],
     "buildsInSource": "_build"
   },
@@ -31,5 +33,9 @@
   "bugs": {
     "url": "https://github.com/jordwalke/pesy/issues"
   },
-  "homepage": "https://github.com/jordwalke/pesy#readme"
+  "homepage": "https://github.com/jordwalke/pesy#readme",
+  "TODO": [
+    "Support the rest of the flags",
+    "Warn on any unexpected config unless it begins with NOTE: or TODO:"
+  ]
 }
