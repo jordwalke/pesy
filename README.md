@@ -33,7 +33,7 @@ This creates:
 
 - `package.json` with useful dependencies/compilers.
 - `.gitignore` and `README.md` with instructions for new contributors.
-- `.circle` continuous integration with cache configured for ultra-fast pull
+- `.circleci` continuous integration with cache configured for ultra-fast pull
   requests.
 - `library/`, `executable/` and `test/` directory with starter modules.
 

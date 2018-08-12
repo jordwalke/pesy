@@ -127,11 +127,11 @@ mkdir -p "${PWD}/test/"
 printf "%s;\\n" "${PACKAGE_NAME_UPPER_CAMEL}.Util.foo()"                   >> "${PWD}/test/${PACKAGE_NAME_UPPER_CAMEL}.re"
 printf "print_endline(\"Add Your Test Cases Here\");\\n"                   >> "${PWD}/test/${PACKAGE_NAME_UPPER_CAMEL}.re"
 
-if [ -d  "${PWD}/.circle" ]; then
-  printf "%s-Project already has a .circle directory. Skipping Circle.%s\\n" "${YELLOW}" "${RESET}"
+if [ -d  "${PWD}/.circleci" ]; then
+  printf "%s-Project already has a .circleci directory. Skipping Circle.%s\\n" "${YELLOW}" "${RESET}"
 else
-  mkdir -p "${PWD}/.circle"
-  sed  -e "s;<PACKAGE_NAME>;${PACKAGE_NAME};g; s;<PUBLIC_LIB_NAME>;${PUBLIC_LIB_NAME};g; s;<PACKAGE_NAME_UPPER_CAMEL>;${PACKAGE_NAME_UPPER_CAMEL};g" "${PESY_DIR}/pesy-circle-config.template.yaml"  >> "${PWD}/.circle/config.yaml"
+  mkdir -p "${PWD}/.circleci"
+  sed  -e "s;<PACKAGE_NAME>;${PACKAGE_NAME};g; s;<PUBLIC_LIB_NAME>;${PUBLIC_LIB_NAME};g; s;<PACKAGE_NAME_UPPER_CAMEL>;${PACKAGE_NAME_UPPER_CAMEL};g" "${PESY_DIR}/pesy-circle-config.template.yml"  >> "${PWD}/.circleci/config.yml"
 fi
 
 if [ -f  "${PWD}/README.md" ]; then
