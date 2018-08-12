@@ -1,6 +1,6 @@
 {
   "name": "pesy",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "\"Esy Pesy\" - Your Esy Assistant.",
   "bin" : { "pesy" : "./pesy" },
   "esy": {
@@ -13,6 +13,7 @@
       "cp #{self.root / 'pesy-JSON.sh'} #{self.install / 'bin' / 'pesy-JSON.sh'}",
       "cp #{self.root / 'pesy-create.sh'} #{self.install / 'bin' / 'pesy-create.sh'}",
       "cp #{self.root / 'pesy-name-utils.sh'} #{self.install / 'bin' / 'pesy-name-utils.sh'}",
+      "cp #{self.root / 'pesy-gitignore.template'} #{self.install / 'bin' / 'pesy-gitignore.template'}",
       "cp #{self.root / 'pesy-package.template.json'} #{self.install / 'bin' / 'pesy-package.template.json'}",
       "cp #{self.root / 'pesy-circle-config.template.yaml'} #{self.install / 'bin' / 'pesy-circle-config.template.yaml'}",
       "cp #{self.root / 'pesy-circle-config.template.yaml'} #{self.install / 'bin' / 'pesy-README.template.md'}"

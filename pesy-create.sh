@@ -140,4 +140,10 @@ else
   sed  -e "s;<PACKAGE_NAME>;${PACKAGE_NAME};g; s;<PUBLIC_LIB_NAME>;${PUBLIC_LIB_NAME};g; s;<PACKAGE_NAME_UPPER_CAMEL>;${PACKAGE_NAME_UPPER_CAMEL};g" "${PESY_DIR}/pesy-README.template.md"  >> "${PWD}/README.md"
 fi
 
+if [ -f  "${PWD}/.gitignore" ]; then
+  printf "%s-.gitignore already exists. Skipping .gitignore generation.%s\\n" "${YELLOW}" "${RESET}"
+else
+  sed  -e "s;<PACKAGE_NAME>;${PACKAGE_NAME};g; s;<PUBLIC_LIB_NAME>;${PUBLIC_LIB_NAME};g; s;<PACKAGE_NAME_UPPER_CAMEL>;${PACKAGE_NAME_UPPER_CAMEL};g" "${PESY_DIR}/pesy-gitignore.template"  >> "${PWD}/.gitignore"
+fi
+
 printf "\\n%s%s package.json created. Running 'esy install' and 'esy pesy'\\n\\n%s" "${BOLD}"  "${PACKAGE_NAME}@${VERSION}" "${RESET}"

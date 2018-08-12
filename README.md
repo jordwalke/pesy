@@ -32,7 +32,7 @@ pesy      # Hit enter to accept default name
 This creates:
 
 - `package.json` with useful dependencies/compilers.
-- `README.md` with instructions for new contributors.
+- `.gitignore` and `README.md` with instructions for new contributors.
 - `.circle` continuous integration with cache configured for ultra-fast pull
   requests.
 - `library/`, `executable/` and `test/` directory with starter modules.
