@@ -13,8 +13,7 @@
       "cp #{self.root / 'pesy-JSON.sh'} #{self.install / 'bin' / 'pesy-JSON.sh'}",
       "cp #{self.root / 'pesy-create.sh'} #{self.install / 'bin' / 'pesy-create.sh'}",
       "cp #{self.root / 'pesy-name-utils.sh'} #{self.install / 'bin' / 'pesy-name-utils.sh'}"
-    ],
-    "buildsInSource": "_build"
+    ]
   },
   "dependencies": {
   },

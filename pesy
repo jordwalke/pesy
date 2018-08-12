@@ -43,7 +43,6 @@ CYAN=`tput setaf 6` || CYAN=''
 WHITE=`tput setaf 7` || WHITE=''
 RESET=`tput sgr0` || RESET=''
 
-SHOW_HELP="false"
 if [[ "$1" == "help" ]]; then
   SHOW_HELP="true"
 else
@@ -70,20 +69,27 @@ fi
 
 
 # It can be expensive to find the pesy implementation dir.
+# If -z then we aren't in any sort of esy build or esy cmd environment. We're
+# running naked on the command line. This implies pesy create or help.  In that
+# case, we need to compute the pesy dir, but we have nowhere to record it yet.
 if [ -z "${cur__target_dir}" ]; then
+  # Create mode
   RECOMPUTE_PESY_DIR="true"
   RECORD_PESY_DIR="false"
 else
+  # Build/update mode (must have the cur__target_dir available).
   mkdir -p "${cur__target_dir}"
   PESY_DIR_CACHE="${cur__target_dir}/pesyDirCache.txt"
   if [ -f  "${PESY_DIR_CACHE}" ]; then
     RECOMPUTE_PESY_DIR="false"
     RECORD_PESY_DIR="false"
   else
+    # Else compute and record it.
     RECOMPUTE_PESY_DIR="true"
     RECORD_PESY_DIR="true"
   fi
 fi
+
 if [ "${RECOMPUTE_PESY_DIR}" == "true" ]; then
   SOURCE="${BASH_SOURCE[0]}"
   while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
@@ -101,6 +107,7 @@ if [ -z "${cur__name}" ]; then
   exit 0
 fi
 
+
 if [ "${RECORD_PESY_DIR}" == "true" ]; then
   echo "${PESY_DIR}" >  "${PESY_DIR_CACHE}"
 fi
@@ -111,12 +118,13 @@ PACKAGE_NAME="${cur__name}"
 echo ""
 echo "${BOLD}${PACKAGE_NAME}@${cur__version}${RESET}"
 
+# The genEverything script is the one that actually does all the
+# checking/updating of build config. We generate that from pesy, then run it.
+# But it's really expensive to generate, so we only regenerate it if
+# package.json has changed.
 GEN_EVERYTHING="${cur__target_dir}/genEverything.sh"
 PESY_DIR_CACHE="${cur__target_dir}/pesyDirCache.txt"
 GEN_MD5="${cur__target_dir}/packageJson.md5"
-mkdir -p "${cur__target_dir}"
-
-CUR_MD5="${RANDOM}"
 
 if [ -x "$(command -v md5)" ]; then
   CUR_MD5=$(md5 "${cur__root}/package.json")
@@ -142,7 +150,7 @@ else
   printf "%s" "${CUR_MD5}" > "${GEN_MD5}"
 fi
 
-####### OKAY NOW YOU CAN PUT ALL THE SLOW STUFF UNDER HERE #########
+####### OKAY NOW EVERYTHING GENERATES THE BUILD SCRIPT "genEverything" #########
 
 echo "" > "${GEN_EVERYTHING}"
 chmod 777 "${GEN_EVERYTHING}"
@@ -340,10 +348,17 @@ for ((i=0; i<${#ALL_DIR_TO_NAME_ARR[@]}; ++i)); do
     IS_LAST="not-last"
   fi
 
+  # We won't print the directories if running in build mode, just to make the
+  # output cleaner for the most common builds, and to save a few milliseconds.
+  # Since MODE is set at actual runtime (not in this script) we have to defer
+  # evaluation of MODE.
   if [[ "${NAME}" == *.exe ]]; then 
+    # Lazy evaluation of mode - it's not yet known.
+    echo '[ "${MODE}" != "build" ] && ' >> "$GEN_EVERYTHING"
     echo "printDirectory \"$DIR\" \"name:    $NAME\" \"main:    \${${DIR}_MAIN_MODULE:-\$DEFAULT_MAIN_MODULE_NAME}\" \"require:\$${DIR}_REQUIRE\"" "$IS_LAST" >> "$GEN_EVERYTHING"
   else
     if [[ "${NAME}" == "${PACKAGE_NAME}"\.* ]]; then 
+      echo '[ "${MODE}" != "build" ] && ' >> "$GEN_EVERYTHING"
       echo "printDirectory \"$DIR\" \"library name: $NAME\" \"namespace:    \$${DIR}_NAMESPACE\" \"require:     \$${DIR}_REQUIRE\"" "$IS_LAST" >> "$GEN_EVERYTHING"
     else
       # Errors will be caught later
