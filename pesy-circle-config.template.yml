@@ -54,7 +54,7 @@ steps: &steps
     command: npm install -g ./_release/<PACKAGE_NAME>.tgz
 - run:
     name: Testing installed release
-    command: "<PACKAGE_NAME_UPPER_CAMEL>.exe"
+    command: "<PACKAGE_NAME_UPPER_CAMEL>App.exe"
 
 
 - store_artifacts:
