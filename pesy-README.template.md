@@ -7,7 +7,7 @@
 **Contains the following libraries and executables:**
 
 ```
-<PACKAGE_NAME>@<VERSION>
+<PACKAGE_NAME>@0.0.0
 │
 ├─test/
 │   name:    Test<PACKAGE_NAME_UPPER_CAMEL>.exe
@@ -27,7 +27,7 @@
 
 ## Developing:
 
-````
+```
 npm install -g esy
 git clone <this-repo>
 esy install
