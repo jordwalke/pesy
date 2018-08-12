@@ -103,8 +103,18 @@ else
 fi
 
 if [ -z "${cur__name}" ]; then
+  # Will set PACKAGE_NAME and VERSION
   source "${PESY_DIR}/pesy-create.sh"
+  esy install
+  # Dynamically access the *current* version of instead of the one installed
+  # as a dependency. Not always a great idea.
+  # Uncomment while debugging pesy itself.
+  # esy sh "${PESY_DIR}/pesy"
+  esy pesy
   exit 0
+else
+  PACKAGE_NAME="${cur__name}"
+  VERSION="${cur__version}"
 fi
 
 
@@ -114,9 +124,8 @@ fi
 
 set -u
 
-PACKAGE_NAME="${cur__name}"
 echo ""
-echo "${BOLD}${PACKAGE_NAME}@${cur__version}${RESET}"
+echo "${BOLD}${PACKAGE_NAME}@${VERSION}${RESET}"
 
 # The genEverything script is the one that actually does all the
 # checking/updating of build config. We generate that from pesy, then run it.
@@ -199,7 +208,7 @@ ALL_DIR_TO_NAME=$("${PESY_DIR}/pesy-JSON.sh" < "${cur__root}/package.json" |  se
 ALL_DIR_TO_NAME=$(printf "%s" "$ALL_DIR_TO_NAME" | tr -s '\n' '|')
 if [ -z "${ALL_DIR_TO_NAME}" ]; then
   # By default, bin and lib
-  ALL_DIR_TO_NAME="bin=${PACKAGE_NAME}.exe|lib=${PACKAGE_NAME}.lib|"
+  ALL_DIR_TO_NAME="executable=${PACKAGE_NAME_UPPER_CAMEL}.exe|library=${PACKAGE_NAME}.lib|"
 fi
 IFS="|";
 ALL_DIR_TO_NAME_ARR=($ALL_DIR_TO_NAME);

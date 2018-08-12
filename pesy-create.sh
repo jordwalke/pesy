@@ -38,6 +38,25 @@ lowerHyphenate(){
   echo "${OUTPUT}"
 }
 
+function printDirectory() {
+  PREFIX=""
+  if [[ "$IS_LAST" == "last" ]]; then
+    printf "└─%s/\\n" "$DIR"
+    PREFIX="    "
+  else
+    printf "├─%s/\\n" "$DIR"
+    PREFIX="│   "
+  fi
+  printf "%s%s\\n" "$PREFIX" "$NAME"
+  printf "%s%s\\n" "$PREFIX" "$NAMESPACE"
+  if [ -z "$REQUIRE" ]; then
+    true
+  else
+    if [ "$REQUIRE" != " " ]; then
+      printf   "%s%s\\n" "$PREFIX" "$REQUIRE"
+    fi
+  fi
+}
 
 
 # https://stackoverflow.com/a/677212
@@ -71,12 +90,11 @@ if [[ "$HAS_JSON" == "true" ]]; then
   exit 1
 fi
 
-
 CUR_DIR_NAME=${PWD##*/}
 CUR_DIR_NAME_KEBAB=$(lowerHyphenate "${CUR_DIR_NAME}")
-printf "\\n%sCreating new package at ${PWD}/package.json.%s\\n" "${GREEN}${BOLD}" "$RESET"
+printf "\\n%sCreate new package in the CURRENT DIRECTORY %s?%s\\n" "${BOLD}" "${PWD}" "${RESET}"
 printf "\\n"
-printf "Enter new package name (lowercase/hyphens) [default %s]:" "${CUR_DIR_NAME_KEBAB}"
+printf "Enter package name (lowercase/hyphens) [default %s]:" "${CUR_DIR_NAME_KEBAB}"
 read ANSWER
 if [[ "${ANSWER}" == "" ]]; then
   ANSWER_KEBAB="${CUR_DIR_NAME_KEBAB}"
@@ -86,56 +104,40 @@ else
   fi
   ANSWER_KEBAB=$(lowerHyphenate "${ANSWER}")
 fi
+PACKAGE_NAME="${ANSWER_KEBAB}"
 
 # https://stackoverflow.com/a/8952274
 source "${PESY_DIR}/pesy-name-utils.sh"
 
 # Gnu uppercasing extensions to sed don't exist on mac.
-PACKAGE_NAME_UPPER_CAMEL=$(upperCamelCasify "${ANSWER_KEBAB}")
-NAMESPACE="${PACKAGE_NAME_UPPER_CAMEL}"
-PUBLIC_LIB_NAME="${ANSWER_KEBAB}.lib"
-printf "{\\n"                                                           >> "${PWD}/package.json"
-printf "  \"name\": \"%s\",\\n" "$ANSWER_KEBAB"                         >> "${PWD}/package.json"
-printf "  \"version\": \"0.0.0\",\\n"                                   >> "${PWD}/package.json"
-printf "  \"description\": \"My Project\",\\n"                          >> "${PWD}/package.json"
-printf "  \"esy\": {\\n"                                                >> "${PWD}/package.json"
-printf "    \"build\": \"pesy\"\\n" >> "${PWD}/package.json"
-printf "  },\\n"                                                        >> "${PWD}/package.json"
-printf "  \"buildDirs\": {\\n"                                          >> "${PWD}/package.json"
-printf "    \"lib\": {\\n"                                              >> "${PWD}/package.json"
-printf "      \"name\": \"%s\",\\n" "${PUBLIC_LIB_NAME}"                >> "${PWD}/package.json"
-printf "      \"namespace\": \"%s\"\\n" "${PACKAGE_NAME_UPPER_CAMEL}"      >> "${PWD}/package.json"
-printf "    },\\n"                                                      >> "${PWD}/package.json"
-printf "    \"bin\": {\\n"                                              >> "${PWD}/package.json"
-printf "      \"require\": [\"%s\"],\\n" "${PUBLIC_LIB_NAME}"           >> "${PWD}/package.json"
-printf "      \"main\": \"%s\",\\n" "Test${PACKAGE_NAME_UPPER_CAMEL}"            >> "${PWD}/package.json"
-printf "      \"name\": \"%s\"\\n" "${PACKAGE_NAME_UPPER_CAMEL}.exe"       >> "${PWD}/package.json"
-printf "    }\\n"                                                       >> "${PWD}/package.json"
-printf "  },\\n"                                                        >> "${PWD}/package.json"
-printf "  \"dependencies\": {\\n"                                       >> "${PWD}/package.json"
-printf "    \"@opam/dune\": \"*\",\\n"                                  >> "${PWD}/package.json"
-printf "    \"@esy-ocaml/reason\": \"*\",\\n"                           >> "${PWD}/package.json"
-printf "    \"refmterr\": \"*\",\\n"                                    >> "${PWD}/package.json"
-printf "    \"ocaml\": \"~4.6.0\",\\n"                                  >> "${PWD}/package.json"
-printf "    \"pesy\": \"*\"\\n"                                         >> "${PWD}/package.json"
-printf "  },\\n"                                                        >> "${PWD}/package.json"
-printf "  \"devDependencies\": {\\n"                                    >> "${PWD}/package.json"
-printf "    \"@esy-ocaml/merlin\": \"*\"\\n"                            >> "${PWD}/package.json"
-printf "  }\\n"                                                         >> "${PWD}/package.json"
-printf "}\\n"                                                           >> "${PWD}/package.json"
+PACKAGE_NAME_UPPER_CAMEL=$(upperCamelCasify "${PACKAGE_NAME}")
+PUBLIC_LIB_NAME="${PACKAGE_NAME}.lib"
 
-mkdir -p "${PWD}/bin/"
-printf "%s;\\n" "${PACKAGE_NAME_UPPER_CAMEL}.Util.foo()"                   >> "${PWD}/bin/Test${PACKAGE_NAME_UPPER_CAMEL}.re"
-
-mkdir -p "${PWD}/lib/"
-printf "let foo = () => print_endline(\"Hello\");\\n"                   >> "${PWD}/lib/Util.re"
+VERSION="0.0.0"
+sed  -e "s;<PACKAGE_NAME>;${PACKAGE_NAME};g; s;<VERSION>;${VERSION};g; s;<PUBLIC_LIB_NAME>;${PUBLIC_LIB_NAME};g; s;<PACKAGE_NAME_UPPER_CAMEL>;${PACKAGE_NAME_UPPER_CAMEL};g" "${PESY_DIR}/pesy-package.template.json"  >> "${PWD}/package.json"
 
 
-printf "\\n%sSuccess!%s Created %s\\n\\n" "${BOLD}${GREEN}" "${RESET}" "${PWD}/package.json"
-printf "Now, run:\\n"
-printf "\\n"
-printf "    esy install     # Install Dependencies\\n"
-printf "    esy pesy        # Configures Build\\n"
-printf "    esy build       # Build Project\\n"
-printf "\\n"
-exit 0
+mkdir -p "${PWD}/executable/"
+printf "%s;\\n" "${PACKAGE_NAME_UPPER_CAMEL}.Util.foo()"                   >> "${PWD}/executable/${PACKAGE_NAME_UPPER_CAMEL}App.re"
+
+mkdir -p "${PWD}/library/"
+printf "let foo = () => print_endline(\"Hello\");\\n"                   >> "${PWD}/library/Util.re"
+
+mkdir -p "${PWD}/test/"
+printf "%s;\\n" "${PACKAGE_NAME_UPPER_CAMEL}.Util.foo()"                   >> "${PWD}/test/${PACKAGE_NAME_UPPER_CAMEL}.re"
+printf "print_endline(\"Add Your Test Cases Here\");\\n"                   >> "${PWD}/test/${PACKAGE_NAME_UPPER_CAMEL}.re"
+
+if [ -d  "${PWD}/.circle" ]; then
+  printf "%s-Project already has a .circle directory. Skipping Circle.%s\\n" "${YELLOW}" "${RESET}"
+else
+  mkdir -p "${PWD}/.circle"
+  sed  -e "s;<PACKAGE_NAME>;${PACKAGE_NAME};g; s;<PUBLIC_LIB_NAME>;${PUBLIC_LIB_NAME};g; s;<PACKAGE_NAME_UPPER_CAMEL>;${PACKAGE_NAME_UPPER_CAMEL};g" "${PESY_DIR}/pesy-circle-config.template.yaml"  >> "${PWD}/.circle/config.yaml"
+fi
+
+if [ -f  "${PWD}/README.md" ]; then
+  printf "%s-README.md already exists. Skipping README generation.%s\\n" "${YELLOW}" "${RESET}"
+else
+  sed  -e "s;<PACKAGE_NAME>;${PACKAGE_NAME};g; s;<PUBLIC_LIB_NAME>;${PUBLIC_LIB_NAME};g; s;<PACKAGE_NAME_UPPER_CAMEL>;${PACKAGE_NAME_UPPER_CAMEL};g" "${PESY_DIR}/pesy-README.template.md"  >> "${PWD}/README.md"
+fi
+
+printf "\\n%s%s package.json created. Running 'esy install' and 'esy pesy'\\n\\n%s" "${BOLD}"  "${PACKAGE_NAME}@${VERSION}" "${RESET}"

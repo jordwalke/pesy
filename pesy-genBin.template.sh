@@ -52,9 +52,9 @@ if [ -d "${BIN_DIR}" ]; then
     notifyUser
     BUILD_STALE_PROBLEM="true"
     if [ "${MODE}" == "build" ]; then
-      printf "    □  Update bin/dune build config\\n"
+      printf "    □  Update <DIR>/dune build config\\n"
     else
-      printf "    %s☒%s  Update bin/dune build config\\n" "${BOLD}${GREEN}" "${RESET}"
+      printf "    %s☒%s  Update <DIR>/dune build config\\n" "${BOLD}${GREEN}" "${RESET}"
       printf "%s" "${BIN_DUNE_CONTENTS}" > "${BIN_DUNE_FILE}"
       mkdir -p "${BIN_DIR}"
     fi
