@@ -39,7 +39,7 @@ steps: &steps
     command: esy test
 - run:
     name: Run the main binary
-    command: esy x <PACKAGE_NAME_UPPER_CAMEL>.exe
+    command: esy x <PACKAGE_NAME_UPPER_CAMEL>App.exe
 - run:
     name: Show all libraries including this package lib
     command: esy ls-libs
