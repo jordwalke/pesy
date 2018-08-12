@@ -1,6 +1,6 @@
 {
   "name": "<PACKAGE_NAME>",
-  "version": "<VERSION>",
+  "version": "0.0.0",
   "description": "My Project",
   "esy": {
     "build": "pesy",
