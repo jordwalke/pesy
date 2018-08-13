@@ -48,17 +48,26 @@ if [ -d "${BIN_DIR}" ]; then
   else
     BIN_DUNE_CONTENTS=$(printf "%s\\n %s" "${BIN_DUNE_CONTENTS}" "  (js_of_ocaml ")
     if [ ! -z "${<DIR>_JSOO_FLAGS}" ]; then
-      BIN_DUNE_CONTENTS=$(printf "%s\\n %s\\n" "${BIN_DUNE_CONTENTS}" "    (flags (:standard ${<DIR>_JSOO_FLAGS}))  ; From package.json jsooFlags field")
+      BIN_DUNE_CONTENTS=$(printf "%s\\n %s\\n" "${BIN_DUNE_CONTENTS}" "    (flags (${<DIR>_JSOO_FLAGS}))  ; From package.json jsooFlags field")
     fi
     if [ ! -z "${<DIR>_JSOO_FILES}" ]; then
       BIN_DUNE_CONTENTS=$(printf "%s\\n %s\\n" "${BIN_DUNE_CONTENTS}" "    (javascript_files ${<DIR>_JSOO_FILES})  ; From package.json jsooFiles field")
     fi
     BIN_DUNE_CONTENTS=$(printf "%s\\n%s" "${BIN_DUNE_CONTENTS}" "   )")
   fi
-  BIN_DUNE_CONTENTS=$(printf "%s\\n %s\\n" "${BIN_DUNE_CONTENTS}" "  (libraries ${<DIR>_REQUIRE}) ;  From package.json require field (array of strings)")
-  BIN_DUNE_CONTENTS=$(printf "%s\\n %s\\n" "${BIN_DUNE_CONTENTS}" "  (flags (:standard ${<DIR>_FLAGS})) ;  From package.json flags field")
-  BIN_DUNE_CONTENTS=$(printf "%s\\n %s\\n" "${BIN_DUNE_CONTENTS}" "  (ocamlc_flags (:standard ${<DIR>_OCAMLC_FLAGS}))  ; From package.json ocamlcFlags field")
-  BIN_DUNE_CONTENTS=$(printf "%s\\n %s\\n" "${BIN_DUNE_CONTENTS}" "  (ocamlopt_flags (:standard ${<DIR>_OCAMLOPT_FLAGS})))  ; From package.json ocamloptFlags field")
+  if [ ! -z "${<DIR>_REQUIRE}" ]; then
+    BIN_DUNE_CONTENTS=$(printf "%s\\n %s\\n" "${BIN_DUNE_CONTENTS}" "  (libraries ${<DIR>_REQUIRE}) ;  From package.json require field (array of strings)")
+  fi
+  if [ ! -z "${<DIR>_FLAGS}" ]; then
+    BIN_DUNE_CONTENTS=$(printf "%s\\n %s\\n" "${BIN_DUNE_CONTENTS}" "  (flags (${<DIR>_FLAGS})) ;  From package.json flags field")
+  fi
+  if [ ! -z "${<DIR>_OCAMLC_FLAGS}" ]; then
+    BIN_DUNE_CONTENTS=$(printf "%s\\n %s\\n" "${BIN_DUNE_CONTENTS}" "  (ocamlc_flags (${<DIR>_OCAMLC_FLAGS}))  ; From package.json ocamlcFlags field")
+  fi
+  if [ ! -z "${<DIR>_OCAMLOPT_FLAGS}" ]; then
+    BIN_DUNE_CONTENTS=$(printf "%s\\n %s\\n" "${BIN_DUNE_CONTENTS}" "  (ocamlopt_flags (${<DIR>_OCAMLOPT_FLAGS}))  ; From package.json ocamloptFlags field")
+  fi
+  BIN_DUNE_CONTENTS=$(printf "%s\\n%s\\n" "${BIN_DUNE_CONTENTS}" "  )")
 
   if [ "${BIN_DUNE_EXISTING_CONTENTS}" == "${BIN_DUNE_CONTENTS}" ]; then
     true
