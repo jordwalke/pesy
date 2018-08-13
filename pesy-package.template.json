@@ -1,5 +1,5 @@
 {
-  "name": "<PACKAGE_NAME>",
+  "name": "<PACKAGE_NAME_FULL>",
   "version": "0.0.0",
   "description": "My Project",
   "esy": {

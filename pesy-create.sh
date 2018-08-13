@@ -99,12 +99,14 @@ read ANSWER
 if [[ "${ANSWER}" == "" ]]; then
   ANSWER_KEBAB="${CUR_DIR_NAME_KEBAB}"
 else
+  ANSWER_KEBAB=$(lowerHyphenate "${ANSWER}")
   if [[ "$ANSWER" != "${ANSWER_KEBAB}" ]]; then
     printf "\\n%sPackage names should only consist of lower case and hyphens. Pesy is going to adjust the name to%s:%s" "${YELLOW}${BOLD}" "${RESET}" "${BOLD}${ANSWER_KEBAB}${RESET}"
   fi
-  ANSWER_KEBAB=$(lowerHyphenate "${ANSWER}")
 fi
-PACKAGE_NAME="${ANSWER_KEBAB}"
+PACKAGE_NAME_FULL="${ANSWER_KEBAB}"
+# Strip off any scope like @esy-ocaml/foo-package.
+PACKAGE_NAME="${PACKAGE_NAME_FULL##*/}"
 
 # https://stackoverflow.com/a/8952274
 source "${PESY_DIR}/pesy-name-utils.sh"
@@ -114,7 +116,7 @@ PACKAGE_NAME_UPPER_CAMEL=$(upperCamelCasify "${PACKAGE_NAME}")
 PUBLIC_LIB_NAME="${PACKAGE_NAME}.lib"
 
 VERSION="0.0.0"
-sed  -e "s;<PACKAGE_NAME>;${PACKAGE_NAME};g; s;<VERSION>;${VERSION};g; s;<PUBLIC_LIB_NAME>;${PUBLIC_LIB_NAME};g; s;<PACKAGE_NAME_UPPER_CAMEL>;${PACKAGE_NAME_UPPER_CAMEL};g" "${PESY_DIR}/pesy-package.template.json"  >> "${PWD}/package.json"
+sed  -e "s;<PACKAGE_NAME_FULL>;${PACKAGE_NAME_FULL};g; s;<VERSION>;${VERSION};g; s;<PUBLIC_LIB_NAME>;${PUBLIC_LIB_NAME};g; s;<PACKAGE_NAME_UPPER_CAMEL>;${PACKAGE_NAME_UPPER_CAMEL};g" "${PESY_DIR}/pesy-package.template.json"  >> "${PWD}/package.json"
 
 
 mkdir -p "${PWD}/executable/"
@@ -131,13 +133,13 @@ if [ -d  "${PWD}/.circleci" ]; then
   printf "%s-Project already has a .circleci directory. Skipping Circle.%s\\n" "${YELLOW}" "${RESET}"
 else
   mkdir -p "${PWD}/.circleci"
-  sed  -e "s;<PACKAGE_NAME>;${PACKAGE_NAME};g; s;<PUBLIC_LIB_NAME>;${PUBLIC_LIB_NAME};g; s;<PACKAGE_NAME_UPPER_CAMEL>;${PACKAGE_NAME_UPPER_CAMEL};g" "${PESY_DIR}/pesy-circle-config.template.yml"  >> "${PWD}/.circleci/config.yml"
+  sed  -e "s;<PACKAGE_NAME_FULL>;${PACKAGE_NAME_FULL};g; s;<PACKAGE_NAME>;${PACKAGE_NAME};g; s;<PUBLIC_LIB_NAME>;${PUBLIC_LIB_NAME};g; s;<PACKAGE_NAME_UPPER_CAMEL>;${PACKAGE_NAME_UPPER_CAMEL};g" "${PESY_DIR}/pesy-circle-config.template.yml"  >> "${PWD}/.circleci/config.yml"
 fi
 
 if [ -f  "${PWD}/README.md" ]; then
   printf "%s-README.md already exists. Skipping README generation.%s\\n" "${YELLOW}" "${RESET}"
 else
-  sed  -e "s;<PACKAGE_NAME>;${PACKAGE_NAME};g; s;<PUBLIC_LIB_NAME>;${PUBLIC_LIB_NAME};g; s;<PACKAGE_NAME_UPPER_CAMEL>;${PACKAGE_NAME_UPPER_CAMEL};g" "${PESY_DIR}/pesy-README.template.md"  >> "${PWD}/README.md"
+  sed  -e "s;<PACKAGE_NAME_FULL>;${PACKAGE_NAME_FULL};g; s;<PACKAGE_NAME>;${PACKAGE_NAME};g; s;<PUBLIC_LIB_NAME>;${PUBLIC_LIB_NAME};g; s;<PACKAGE_NAME_UPPER_CAMEL>;${PACKAGE_NAME_UPPER_CAMEL};g" "${PESY_DIR}/pesy-README.template.md"  >> "${PWD}/README.md"
 fi
 
 if [ -f  "${PWD}/.gitignore" ]; then
@@ -146,4 +148,4 @@ else
   sed  -e "s;<PACKAGE_NAME>;${PACKAGE_NAME};g; s;<PUBLIC_LIB_NAME>;${PUBLIC_LIB_NAME};g; s;<PACKAGE_NAME_UPPER_CAMEL>;${PACKAGE_NAME_UPPER_CAMEL};g" "${PESY_DIR}/pesy-gitignore.template"  >> "${PWD}/.gitignore"
 fi
 
-printf "\\n%s%s package.json created. Running 'esy install' and 'esy pesy'\\n\\n%s" "${BOLD}"  "${PACKAGE_NAME}@${VERSION}" "${RESET}"
+printf "\\n%s%s package.json created. Running 'esy install' and 'esy pesy'\\n\\n%s" "${BOLD}"  "${PACKAGE_NAME_FULL}@${VERSION}" "${RESET}"

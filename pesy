@@ -113,8 +113,10 @@ if [ -z "${cur__name}" ]; then
   esy pesy
   exit 0
 else
-  PACKAGE_NAME="${cur__name}"
+  PACKAGE_NAME_FULL="${cur__name}"
   VERSION="${cur__version}"
+  # Strip off any scope like @esy-ocaml/foo-package.
+  PACKAGE_NAME="${PACKAGE_NAME_FULL##*/}"
 fi
 
 
@@ -125,7 +127,7 @@ fi
 set -u
 
 echo ""
-echo "${BOLD}${PACKAGE_NAME}@${VERSION}${RESET}"
+echo "${BOLD}${PACKAGE_NAME_FULL}@${VERSION}${RESET}"
 
 # The genEverything script is the one that actually does all the
 # checking/updating of build config. We generate that from pesy, then run it.
