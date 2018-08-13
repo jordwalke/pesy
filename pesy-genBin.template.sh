@@ -41,6 +41,20 @@ if [ -d "${BIN_DIR}" ]; then
   BIN_DUNE_CONTENTS=$(printf "%s\\n %s" "${BIN_DUNE_CONTENTS}" "  ; The entrypoint module")
   BIN_DUNE_CONTENTS=$(printf "%s\\n %s" "${BIN_DUNE_CONTENTS}" "  (name ${<DIR>_MAIN_MODULE_NAME})  ;  From package.json main field")
   BIN_DUNE_CONTENTS=$(printf "%s\\n %s" "${BIN_DUNE_CONTENTS}" "  (public_name <EXE_NAME>)  ;  From package.json name field")
+
+  if [ -z "${<DIR>_JSOO_FLAGS}" ] && [ -z "${<DIR>_JSOO_FILES}" ]; then
+    # No jsoo flags whatsoever
+    true
+  else
+    BIN_DUNE_CONTENTS=$(printf "%s\\n %s" "${BIN_DUNE_CONTENTS}" "  (js_of_ocaml ")
+    if [ ! -z "${<DIR>_JSOO_FLAGS}" ]; then
+      BIN_DUNE_CONTENTS=$(printf "%s\\n %s\\n" "${BIN_DUNE_CONTENTS}" "    (flags (:standard ${<DIR>_JSOO_FLAGS}))  ; From package.json jsooFlags field")
+    fi
+    if [ ! -z "${<DIR>_JSOO_FILES}" ]; then
+      BIN_DUNE_CONTENTS=$(printf "%s\\n %s\\n" "${BIN_DUNE_CONTENTS}" "    (javascript_files ${<DIR>_JSOO_FILES})  ; From package.json jsooFiles field")
+    fi
+    BIN_DUNE_CONTENTS=$(printf "%s\\n%s" "${BIN_DUNE_CONTENTS}" "   )")
+  fi
   BIN_DUNE_CONTENTS=$(printf "%s\\n %s\\n" "${BIN_DUNE_CONTENTS}" "  (libraries ${<DIR>_REQUIRE}) ;  From package.json require field (array of strings)")
   BIN_DUNE_CONTENTS=$(printf "%s\\n %s\\n" "${BIN_DUNE_CONTENTS}" "  (flags (:standard ${<DIR>_FLAGS})) ;  From package.json flags field")
   BIN_DUNE_CONTENTS=$(printf "%s\\n %s\\n" "${BIN_DUNE_CONTENTS}" "  (ocamlc_flags (:standard ${<DIR>_OCAMLC_FLAGS}))  ; From package.json ocamlcFlags field")
