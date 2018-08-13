@@ -126,8 +126,8 @@ mkdir -p "${PWD}/library/"
 printf "let foo = () => print_endline(\"Hello\");\\n"                   >> "${PWD}/library/Util.re"
 
 mkdir -p "${PWD}/test/"
-printf "%s;\\n" "${PACKAGE_NAME_UPPER_CAMEL}.Util.foo()"                   >> "${PWD}/test/${PACKAGE_NAME_UPPER_CAMEL}.re"
-printf "print_endline(\"Add Your Test Cases Here\");\\n"                   >> "${PWD}/test/${PACKAGE_NAME_UPPER_CAMEL}.re"
+printf "%s;\\n" "${PACKAGE_NAME_UPPER_CAMEL}.Util.foo()"                   >> "${PWD}/test/Test${PACKAGE_NAME_UPPER_CAMEL}.re"
+printf "print_endline(\"Add Your Test Cases Here\");\\n"                   >> "${PWD}/test/Test${PACKAGE_NAME_UPPER_CAMEL}.re"
 
 if [ -d  "${PWD}/.circleci" ]; then
   printf "%s-Project already has a .circleci directory. Skipping Circle.%s\\n" "${YELLOW}" "${RESET}"
