@@ -7,10 +7,22 @@ pool:
   vmImage: 'Ubuntu 16.04'
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+- script: 'sudo npm install -g esy@next --unsafe-perm'
+  displayName: 'Installing deps'
+  workingDirectory: 're'
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+- script: esy install
+  displayName: 'Installing deps'
+  workingDirectory: 're'
+
+- script: esy build
+  displayName: 'Building'
+  workingDirectory: 're'
+
+- script: esy x Pesy.exe
+  displayName: 'Test run Pesy.exe'
+  workingDirectory: 're'
+
+- script: esy test
+  displayName: 'Running tests'
+  workingDirectory: 're'

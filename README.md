@@ -1,5 +1,8 @@
 # pesy: Native Reason Project from Json.
 
+[![Build Status](https://dev.azure.com/prometheansacrifice/pesy/_apis/build/status/prometheansacrifice.pesy)](https://dev.azure.com/prometheansacrifice/pesy/_build/latest?definitionId=1)
+
+
 - Use `package.json` to automatically configure libraries and executables built
   with Dune.
 

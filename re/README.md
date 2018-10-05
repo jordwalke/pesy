@@ -1,9 +1,6 @@
 # pesy
 
 
-[![CircleCI](https://circleci.com/gh/prometheansacrifice/pesy/tree/master.svg?style=svg)](https://circleci.com/gh/prometheansacrifice/pesy/tree/master)
-
-
 **Contains the following libraries and executables:**
 
 ```
