@@ -1,0 +1,4 @@
+(executable
+(name TestPesy)
+(public_name TestPesy.exe)
+(libraries  pesy.lib))

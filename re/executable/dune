@@ -1,0 +1,4 @@
+(executable
+(name Pesy)
+(public_name Pesy.exe)
+(libraries  pesy.lib))

@@ -1,0 +1,42 @@
+{
+  "name": "pesy",
+  "version": "0.0.0",
+  "description": "My Project",
+  "esy": {
+    "build": "dune build",
+    "release": {
+      "releasedBinaries": [
+        "Pesy.exe"
+      ]
+    }
+  },
+  "buildDirs": {
+    "test": {
+      "require": ["pesy.lib"],
+      "main": "TestPesy",
+      "name": "TestPesy.exe"
+    },
+    "library": {
+      "name": "pesy.lib",
+      "namespace": "Pesy"
+    },
+    "executable": {
+      "require": ["pesy.lib"],
+      "main": "Pesy",
+      "name": "Pesy.exe"
+    }
+  },
+  "scripts": {
+    "test": "esy x TestPesy.exe"
+  },
+  "dependencies": {
+    "@opam/dune": "*",
+    "@esy-ocaml/reason": "*",
+    "refmterr": "*",
+    "ocaml": "~4.6.0",
+    "pesy": "*"
+  },
+  "devDependencies": {
+    "@esy-ocaml/merlin": "*"
+  }
+}
