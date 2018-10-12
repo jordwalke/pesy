@@ -3,26 +3,23 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
-pool:
-  vmImage: 'Ubuntu 16.04'
 
-steps:
-- script: 'sudo npm install -g esy@next --unsafe-perm'
-  displayName: 'Installing deps'
-  workingDirectory: 're'
+jobs:
+- template: .ci/build.yaml  # Template reference
+  parameters:
+    name: macOS
+    pool:
+      vmImage: 'macOS-10.13'
 
-- script: esy install
-  displayName: 'Installing deps'
-  workingDirectory: 're'
+- template: .ci/build.yaml  # Template reference
+  parameters:
+    name: Linux
+    pool:
+      vmImage: 'Ubuntu-16.04'
 
-- script: esy build
-  displayName: 'Building'
-  workingDirectory: 're'
-
-- script: esy x Pesy.exe
-  displayName: 'Test run Pesy.exe'
-  workingDirectory: 're'
-
-- script: esy test
-  displayName: 'Running tests'
-  workingDirectory: 're'
+- template: .ci/build.yaml  # Template reference
+  parameters:
+    name: Windows
+    pool:
+      vmImage: 'vs2017-win2016'      
+    sign: true  # Extra step on Windows only

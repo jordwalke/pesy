@@ -1,0 +1,29 @@
+parameters:
+  name: ''
+  pool: ''
+  sign: false
+
+jobs:
+- job: ${{ parameters.name }}
+  pool: ${{ parameters.pool }}
+  steps:
+  - ${{ if eq(parameters.sign, 'true') }}:
+    - script: 'npm install -g esy@next --unsafe-perm'
+      displayName: 'Installing deps'
+      workingDirectory: 're'
+  - ${{ if eq(parameters.sign, 'false') }}:
+    - script: 'sudo npm install -g esy@next --unsafe-perm'
+      displayName: 'Installing deps'
+      workingDirectory: 're'
+  - script: esy install
+    displayName: 'Installing deps'
+    workingDirectory: 're'
+  - script: esy build
+    displayName: 'Building'
+    workingDirectory: 're'
+  - script: esy x Pesy.exe
+    displayName: 'Test run Pesy.exe'
+    workingDirectory: 're'
+  - script: esy test
+    displayName: 'Running tests'
+    workingDirectory: 're'
