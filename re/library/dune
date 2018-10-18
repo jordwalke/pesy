@@ -1,3 +1,4 @@
 (library
 (name PesyLib)
-(public_name pesy.lib))
+(public_name pesy.lib)
+(libraries lambda-term))
