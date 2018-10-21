@@ -1,4 +1,5 @@
 (library
 (name PesyLib)
 (public_name pesy.lib)
-(libraries lambda-term))
+(libraries str react lwt lambda-term pesy.utils)
+(preprocess (pps lwt_ppx)))

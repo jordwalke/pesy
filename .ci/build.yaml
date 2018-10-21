@@ -21,9 +21,6 @@ jobs:
   - script: esy build
     displayName: 'Building'
     workingDirectory: 're'
-  - script: esy x Pesy.exe
-    displayName: 'Test run Pesy.exe'
-    workingDirectory: 're'
   - script: esy test
     displayName: 'Running tests'
     workingDirectory: 're'

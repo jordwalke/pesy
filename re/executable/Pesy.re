@@ -1,5 +1,5 @@
 let isInsideEsyEnv = () =>
-  switch (PesyLib.Utils.getEnv("cur__name")) {
+  switch (PesyUtils.getEnv("cur__name")) {
   | Some(_) => true
   | None => false
   };

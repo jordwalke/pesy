@@ -1,5 +1,5 @@
 {
-  "hash": "6fdb36586e9552487981b83156516ef0",
+  "hash": "4618deee27c6d710fa75e7d344479b75",
   "root": "root@path:./package.json",
   "node": {
     "root@path:./package.json": {
@@ -11,22 +11,24 @@
         "opam": null
       },
       "dependencies": [
-        "@esy-ocaml/merlin@3.0.5005", "@esy-ocaml/reason@3.3.5",
+        "@esy-ocaml/merlin@3.0.5005", "@esy-ocaml/reason@3.3.7",
         "@opam/dune@opam:1.4.0", "@opam/lambda-term@opam:1.13",
-        "ocaml@4.6.7", "pesy@0.2.13", "refmterr@3.1.8"
+        "@opam/lwt@opam:4.1.0", "@opam/lwt_ppx@opam:1.2.1",
+        "@opam/react@opam:1.2.1", "ocaml@4.6.7", "pesy@0.2.13",
+        "refmterr@3.1.9"
       ]
     },
-    "refmterr@3.1.8": {
+    "refmterr@3.1.9": {
       "record": {
         "name": "refmterr",
-        "version": "3.1.8",
+        "version": "3.1.9",
         "source":
-          "archive:https://registry.npmjs.org/refmterr/-/refmterr-3.1.8.tgz#sha1:890121b848bf609ac65e47cd00cd80064e6a95af",
+          "archive:https://registry.npmjs.org/refmterr/-/refmterr-3.1.9.tgz#sha1:03d4679c564fb1d1de28d1c0ce8b1fb934406bac",
         "files": [],
         "opam": null
       },
       "dependencies": [
-        "@esy-ocaml/reason@3.3.5", "@opam/jbuilder@opam:transition",
+        "@esy-ocaml/reason@3.3.7", "@opam/jbuilder@opam:transition",
         "@opam/re@opam:1.7.3", "ocaml@4.6.7"
       ]
     },
@@ -172,6 +174,26 @@
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
         "ocaml@4.6.7"
+      ]
+    },
+    "@opam/ppx_tools_versioned@opam:5.2.1": {
+      "record": {
+        "name": "@opam/ppx_tools_versioned",
+        "version": "opam:5.2.1",
+        "source":
+          "archive:https://github.com/ocaml-ppx/ppx_tools_versioned/archive/5.2.1.tar.gz#md5:1ae6ae43ec161fbbf12c2b4d3a7e26f5",
+        "files": [],
+        "opam": {
+          "name": "ppx_tools_versioned",
+          "version": "5.2.1",
+          "opam":
+            "opam-version: \"2.0\"\nname: \"ppx_tools_versioned\"\nversion: \"5.2.1\"\nsynopsis: \"A variant of ppx_tools based on ocaml-migrate-parsetree\"\nmaintainer: \"frederic.bour@lakaban.net\"\nauthors: [\n  \"Frédéric Bour <frederic.bour@lakaban.net>\"\n  \"Alain Frisch <alain.frisch@lexifi.com>\"\n]\nlicense: \"MIT\"\ntags: \"syntax\"\nhomepage: \"https://github.com/let-def/ppx_tools_versioned\"\nbug-reports: \"https://github.com/let-def/ppx_tools_versioned/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.02.0\"}\n  \"jbuilder\" {build & >= \"1.0+beta17\"}\n  \"ocaml-migrate-parsetree\" {>= \"1.0.10\"}\n]\nbuild: [\n  [\"jbuilder\" \"subst\" \"-p\" name] {pinned}\n  [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\n  [\"jbuilder\" \"runtest\" \"-p\" name \"-j\" jobs] {with-test}\n]\ndev-repo: \"git://github.com/let-def/ppx_tools_versioned.git\"\nurl {\n  src:\n    \"https://github.com/ocaml-ppx/ppx_tools_versioned/archive/5.2.1.tar.gz\"\n  checksum: \"md5=1ae6ae43ec161fbbf12c2b4d3a7e26f5\"\n}",
+          "override": null
+        }
+      },
+      "dependencies": [
+        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
+        "@opam/ocaml-migrate-parsetree@opam:1.1.0", "ocaml@4.6.7"
       ]
     },
     "@opam/ocamlfind@opam:1.8.0": {
@@ -375,6 +397,27 @@
       "dependencies": [
         "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
         "@opam/lwt@opam:4.1.0", "@opam/react@opam:1.2.1", "ocaml@4.6.7"
+      ]
+    },
+    "@opam/lwt_ppx@opam:1.2.1": {
+      "record": {
+        "name": "@opam/lwt_ppx",
+        "version": "opam:1.2.1",
+        "source":
+          "archive:https://github.com/ocsigen/lwt/archive/4.1.0.tar.gz#md5:e919bee206f18b3d49250ecf9584fde7",
+        "files": [],
+        "opam": {
+          "name": "lwt_ppx",
+          "version": "1.2.1",
+          "opam":
+            "opam-version: \"2.0\"\nname: \"lwt_ppx\"\nversion: \"1.2.1\"\nsynopsis:\n  \"PPX syntax for Lwt, providing something similar to async/await from JavaScript\"\nmaintainer: \"Anton Bachin <antonbachin@yahoo.com>\"\nauthors: \"Gabriel Radanne\"\nlicense: \"LGPL with OpenSSL linking exception\"\nhomepage: \"https://github.com/ocsigen/lwt\"\ndoc: \"https://ocsigen.org/lwt/api/Ppx_lwt\"\nbug-reports: \"https://github.com/ocsigen/lwt/issues\"\ndepends: [\n  \"ocaml\" {>= \"4.02.0\"}\n  \"jbuilder\" {build & >= \"1.0+beta14\"}\n  \"lwt\"\n  \"ocaml-migrate-parsetree\"\n  \"ppx_tools_versioned\" {>= \"5.0.1\"}\n]\nbuild: [\"jbuilder\" \"build\" \"-p\" name \"-j\" jobs]\ndev-repo: \"git+https://github.com/ocsigen/lwt.git\"\nurl {\n  src: \"https://github.com/ocsigen/lwt/archive/4.1.0.tar.gz\"\n  checksum: \"md5=e919bee206f18b3d49250ecf9584fde7\"\n}",
+          "override": null
+        }
+      },
+      "dependencies": [
+        "@esy-ocaml/substs@0.0.1", "@opam/jbuilder@opam:transition",
+        "@opam/lwt@opam:4.1.0", "@opam/ocaml-migrate-parsetree@opam:1.1.0",
+        "@opam/ppx_tools_versioned@opam:5.2.1", "ocaml@4.6.7"
       ]
     },
     "@opam/lwt_log@opam:1.1.0": {
@@ -653,12 +696,12 @@
       },
       "dependencies": []
     },
-    "@esy-ocaml/reason@3.3.5": {
+    "@esy-ocaml/reason@3.3.7": {
       "record": {
         "name": "@esy-ocaml/reason",
-        "version": "3.3.5",
+        "version": "3.3.7",
         "source":
-          "archive:https://registry.npmjs.org/@esy-ocaml/reason/-/reason-3.3.5.tgz#sha1:be17c1c2733b67044244ae508874bb6ef6032b7e",
+          "archive:https://registry.npmjs.org/@esy-ocaml/reason/-/reason-3.3.7.tgz#sha1:4d75b8876807c4178c6fff2359962066bb69d944",
         "files": [],
         "opam": null
       },
