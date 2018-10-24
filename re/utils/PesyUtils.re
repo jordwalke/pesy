@@ -42,3 +42,20 @@ let removeScope = kebab =>
   Str.global_replace(Str.regexp("[^\\/]*/"), "", kebab);
 
 let getEnv = Sys.getenv_opt;
+
+let readFile = file => {
+  let buf = ref("");
+  let breakOut = ref(false);
+  let ic = open_in(file);
+  while (! breakOut^) {
+    let line =
+      try (input_line(ic)) {
+      | End_of_file => ""
+      };
+    if (line == "") {
+      breakOut := true;
+    };
+    buf := buf^ ++ line;
+  };
+  buf^;
+};
