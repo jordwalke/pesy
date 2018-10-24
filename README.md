@@ -1,4 +1,4 @@
-# pesy: Native Reason Project from Json.
+# pesy
 
 [![Build Status](https://dev.azure.com/prometheansacrifice/pesy/_apis/build/status/prometheansacrifice.pesy)](https://dev.azure.com/prometheansacrifice/pesy/_build/latest?definitionId=1)
 
