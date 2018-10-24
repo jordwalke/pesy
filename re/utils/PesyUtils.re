@@ -43,6 +43,13 @@ let removeScope = kebab =>
 
 let getEnv = Sys.getenv_opt;
 
+let write = (file, str) => {
+  let fileChannel =
+    open_out_gen([Open_creat, Open_text, Open_append], 0o640, file);
+  Printf.fprintf(fileChannel, "%s", str);
+  close_out(fileChannel);
+};
+
 let readFile = file => {
   let buf = ref("");
   let breakOut = ref(false);
@@ -54,8 +61,37 @@ let readFile = file => {
       };
     if (line == "") {
       breakOut := true;
+    } else {
+      buf := buf^ ++ "\n" ++ line;
     };
-    buf := buf^ ++ line;
   };
   buf^;
+};
+
+module Path = {
+  let (/) = Filename.concat;
+};
+
+let parent = Filename.dirname;
+
+let loadTemplate = name =>
+  readFile(
+    Path.(
+      (Sys.executable_name |> parent |> parent)
+      / "share"
+      / "template-repo"
+      / name
+    ),
+  );
+
+let r = Str.regexp;
+
+let exists = Sys.file_exists;
+
+let mkdirp = dirs => {
+  let _ =
+    Sys.command(
+      "mkdir -p " ++ List.fold_left((acc, e) => Path.(acc / e), "", dirs),
+    );
+  ();
 };

@@ -25,3 +25,17 @@ let projectExistsError =
     E_fg,
     S(projectExistsErrorMsgBody),
   ]);
+
+let readmeExistsWarning =
+  eval([
+    B_fg(yellow),
+    S("README.md already exists. Skipping README generation"),
+    E_fg,
+  ]);
+
+let gitignoreExistsWarning =
+  eval([
+    B_fg(yellow),
+    S(".gitignore already exists. Skipping .gitignore generation."),
+    E_fg,
+  ]);
