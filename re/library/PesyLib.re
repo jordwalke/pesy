@@ -23,7 +23,17 @@ let bootstrap = () =>
           currentDirNameKebab,
         ),
       );
-    let packageName =
-      packageNameAnswer == "" ? currentDirNameKebab : packageNameAnswer;
-    LTerm.printls(LTerm_text.eval([LTerm_text.S(packageName)]));
+    let packageNameKebab =
+      packageNameAnswer == "" ?
+        currentDirNameKebab : kebab(packageNameAnswer);
+    let packageNameKebabSansScope = removeScope(packageNameKebab);
+    let packageUpperCamelCase = upperCamelCasify(packageNameKebabSansScope);
+    /*  @esy-ocaml/foo-package -> foo-package */
+    LTerm.printls(
+      LTerm_text.eval([
+        LTerm_text.S(packageNameKebabSansScope),
+        LTerm_text.S(" ====== " ++ packageUpperCamelCase),
+        LTerm_text.S(" ====== " ++ packageNameKebab),
+      ]),
+    );
   };

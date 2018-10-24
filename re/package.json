@@ -27,7 +27,7 @@
     "@opam/lambda-term": "1.13",
     "@opam/lwt": "4.1.0",
     "@opam/lwt_ppx": "1.2.1",
-    "@opam/react": "1.2.1",
+    "@opam/ppx_inline_test": "v0.11.0",
     "ocaml": "~4.6.0",
     "pesy": "*",
     "refmterr": "*"

@@ -1,0 +1,6 @@
+(library
+  (name PesyFunctionalTestsLib)
+  (library_flags (-linkall))
+  (libraries str unix ppx_inline_test.runtime-lib pesy.utils)
+  (modules (:standard))
+  (preprocess (pps ppx_inline_test)))
