@@ -88,10 +88,12 @@ let r = Str.regexp;
 
 let exists = Sys.file_exists;
 
-let mkdirp = dirs => {
-  let _ =
-    Sys.command(
-      "mkdir -p " ++ List.fold_left((acc, e) => Path.(acc / e), "", dirs),
-    );
-  ();
-};
+/* let mkdirp = dirs => { */
+/*   let _ = */
+/*     Sys.command( */
+/*       "mkdir -p " ++ List.fold_left((acc, e) => Path.(acc / e), "", dirs), */
+/*     ); */
+/*   (); */
+/* }; */
+
+let mkdirp = p => Sys.command("mkdir -p " ++ p);

@@ -33,7 +33,7 @@
     "@opam/dune": "*",
     "@esy-ocaml/reason": "*",
     "refmterr": "*",
-    "ocaml": "^4.4.0",
+    "ocaml": "~4.6.0",
     "pesy": "*"
   },
   "devDependencies": {

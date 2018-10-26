@@ -3,7 +3,7 @@ open Utils;
 
 let build = () => LTerm.printls(LTerm_text.of_string("TODO: Build process"));
 
-let bootstrap = () =>
+let bootstrap = testMode =>
   if (!isEsyInstalled()) {
     LTerm.printls(Copy.esyNotInstalledError);
   } else {
@@ -15,12 +15,14 @@ let bootstrap = () =>
     );
     let currentDirNameKebab = kebab(getCurrentDirName());
     let packageNameAnswer =
-      prompt(
-        Printf.sprintf(
-          "Enter package name (lowercase/hyphens) [default %s]:",
-          currentDirNameKebab,
-        ),
-      );
+      !testMode ?
+        prompt(
+          Printf.sprintf(
+            "Enter package name (lowercase/hyphens) [default %s]:",
+            currentDirNameKebab,
+          ),
+        ) :
+        currentDirNameKebab;
     let packageNameKebab =
       packageNameAnswer == "" ?
         currentDirNameKebab : kebab(packageNameAnswer);
@@ -86,12 +88,18 @@ let bootstrap = () =>
       write("package.json", packageJSON);
     };
 
-    mkdirp([Sys.getcwd(), "executable"]);
-    write("App.re", appRe);
-    mkdirp([Sys.getcwd(), "library"]);
-    write("Util.re", utilRe);
-    mkdirp([Sys.getcwd(), "test"]);
-    write("Test" ++ packageNameUpperCamelCase ++ ".re", testRe);
+    let appRePath = Path.(Sys.getcwd() / "executable");
+    let _ = mkdirp(appRePath);
+    write(Path.(appRePath / "App.re"), appRe);
+    let utilRePath = Path.(Sys.getcwd() / "library");
+    let _ = mkdirp(utilRePath);
+    write(Path.(utilRePath / "Util.re"), utilRe);
+    let testRePath = Path.(Sys.getcwd() / "test");
+    let _ = mkdirp(testRePath);
+    write(
+      Path.(testRePath / "Test" ++ packageNameUpperCamelCase ++ ".re"),
+      testRe,
+    );
 
     if (exists("README.md")) {
       let _ = LTerm.printls(Copy.readmeExistsWarning);
@@ -118,6 +126,10 @@ let bootstrap = () =>
         ]),
       );
 
-    let _ = Sys.command("esy i && esy b");
-    LTerm.printls(LTerm_text.eval([LTerm_text.S("Done")]));
+    let setupStatus = Sys.command("esy i && esy b");
+    if (setupStatus != 0) {
+      LTerm.printls(LTerm_text.eval([LTerm_text.S("Error!")]));
+    } else {
+      LTerm.printls(LTerm_text.eval([LTerm_text.S("Done")]));
+    };
   };

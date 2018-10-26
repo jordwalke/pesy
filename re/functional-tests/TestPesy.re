@@ -20,22 +20,23 @@ let copyTemplate = tpl => {
            / tpl
          )
       ++ " "
-      ++ Path.(testProjectDir / "share"),
+      ++ Path.(testProjectDir / "share" / "template-repo"),
     );
-  print_endline("Copied " ++ tpl);
+  ();
+  /* print_endline("Copied " ++ tpl); */
 };
 
-print_endline(Path.(testProjectDir / "bin"));
-
-Sys.command("mkdir -p " ++ Path.(testProjectDir / "bin"));
-Sys.command("mkdir -p " ++ Path.(testProjectDir / "share"));
+Sys.command("mkdir " ++ testProjectDir);
+Sys.command("mkdir " ++ Path.(testProjectDir / "bin"));
+Sys.command("mkdir " ++ Path.(testProjectDir / "share"));
+Sys.command("mkdir " ++ Path.(testProjectDir / "share" / "template-repo"));
 Sys.command(
   "cp "
   ++ Path.(
        (
-         switch (Sys.getenv_opt("cur__root")) {
+         switch (Sys.getenv_opt("PWD")) {
          | Some(x) => x
-         | None => ""
+         | None => "something-went-wrong"
          }
        )
        / "_build"
@@ -62,5 +63,6 @@ Unix.putenv(
   ++ Path.(testProjectDir / "bin"),
 );
 
-Sys.command("pesy");
+Sys.command("Pesy.exe --test-mode");
+Sys.command("esy pesy");
 exit(Sys.command("esy x TestProjectApp.exe"));

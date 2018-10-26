@@ -29,7 +29,6 @@
       "name": "Pesy.exe"
     }
   },
-  "scripts": { "test": "esy x TestPesy.exe" },
   "dependencies": {
     "@esy-ocaml/reason": "*",
     "@opam/dune": "*",

@@ -15,12 +15,20 @@ jobs:
     - script: 'sudo npm install -g esy@next --unsafe-perm'
       displayName: 'Installing deps'
       workingDirectory: 're'
+  - ${{ if eq(parameters.sign, 'true') }}:
+    - script: 'npm install -g pesy --unsafe-perm'
+      displayName: 'Installing pesy for testing'
+      workingDirectory: 're'
+  - ${{ if eq(parameters.sign, 'false') }}:
+    - script: 'sudo npm install -g pesy --unsafe-perm'
+      displayName: 'Installing pesy for testing'
+      workingDirectory: 're'
   - script: esy install
     displayName: 'Installing deps'
     workingDirectory: 're'
   - script: esy build
     displayName: 'Building'
     workingDirectory: 're'
-  - script: esy test
+  - script: esy x TestPesy.exe
     displayName: 'Running tests'
     workingDirectory: 're'
