@@ -171,10 +171,14 @@ add support for more config fields, PRs are welcomed.
 
 **Binaries**
 - `name`: The name of the binary
-- `require`: Libraries required
 
 **Libraries**
 - `name`: The name of the library
 - `namespace`: The name that other modules will _see_ your module as, within
   their source code, if they `require` your library.
-- `require`: Libraries required
+
+**Both**
+- `require`: Array of strings (public library names)
+- `jsooFlags`: Array of flags passed to jsoo.
+- `ignoreSubdirs` : Array of subdirectory names to ignore
+- `includeSubdirs` : (string) either "no" or "unqualified"
