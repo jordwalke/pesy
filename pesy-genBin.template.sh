@@ -67,7 +67,10 @@ if [ -d "${BIN_DIR}" ]; then
   if [ ! -z "${<DIR>_OCAMLOPT_FLAGS}" ]; then
     BIN_DUNE_CONTENTS=$(printf "%s\\n %s\\n" "${BIN_DUNE_CONTENTS}" "  (ocamlopt_flags (${<DIR>_OCAMLOPT_FLAGS}))  ; From package.json ocamloptFlags field")
   fi
-  BIN_DUNE_CONTENTS=$(printf "%s\\n%s\\n" "${BIN_DUNE_CONTENTS}" "  )")
+  BIN_DUNE_CONTENTS=$(printf "%s\\n%s\\n" "${BIN_DUNE_CONTENTS}" ")")
+  if [ ! -z "${<DIR>_IGNOREDSUBDIRS}" ]; then
+    BIN_DUNE_CONTENTS=$(printf "%s\\n%s\\n" "${BIN_DUNE_CONTENTS}" "(ignored_subdirs (${<DIR>_IGNOREDSUBDIRS})) ;  From package.json ignoredSubdirs field")
+  fi
 
   if [ "${BIN_DUNE_EXISTING_CONTENTS}" == "${BIN_DUNE_CONTENTS}" ]; then
     true

@@ -238,6 +238,7 @@ for ((i=0; i<${#ALL_DIR_TO_NAME_ARR[@]}; ++i)); do
   echo "${DIR}_REQUIRE=\"\"" >> "${GEN_EVERYTHING}"
   echo "#Default Flags" >> "${GEN_EVERYTHING}"
   echo "${DIR}_FLAGS=\"\"" >> "${GEN_EVERYTHING}"
+  echo "${DIR}_IGNOREDSUBDIRS=\"\"" >> "${GEN_EVERYTHING}"
   echo "${DIR}_OCAMLC_FLAGS=\"\"" >> "${GEN_EVERYTHING}"
   echo "${DIR}_OCAMLOPT_FLAGS=\"\"" >> "${GEN_EVERYTHING}"
   echo "${DIR}_C_NAMES=\"\"" >> "${GEN_EVERYTHING}"
@@ -300,6 +301,21 @@ for ((i=0; i<${#ALL_DIR_TO_FLAGS_ARR[@]}; ++i)); do
   FLAGS=${DIR_AND_FLAGS_ARR[1]}
   # This one is an array so we take an extra step to strip out [ ] and ""
   echo "${DIR}_FLAGS=\"${FLAGS}\"" >> "${GEN_EVERYTHING}"
+done
+
+ALL_DIR_TO_IGNOREDSUBDIRS=$("${PESY_DIR}/pesy-JSON.sh" < "${cur__root}/package.json" |  sed -n 's;\["buildDirs","\([^"]*\)","ignoredSubdirs"\][[:space:]]*\(.*\);\1=\2;p')
+ALL_DIR_TO_IGNOREDSUBDIRS=$(printf "$ALL_DIR_TO_IGNOREDSUBDIRS" | tr -s '["],' ' ')
+ALL_DIR_TO_IGNOREDSUBDIRS=$(printf "%s" "$ALL_DIR_TO_IGNOREDSUBDIRS" | tr -s '\n' '|')
+IFS="|";
+ALL_DIR_TO_IGNOREDSUBDIRS_ARR=($ALL_DIR_TO_IGNOREDSUBDIRS);
+for ((i=0; i<${#ALL_DIR_TO_IGNOREDSUBDIRS_ARR[@]}; ++i)); do
+  IFS="=";
+  DIR_AND_IGNOREDSUBDIRS="${ALL_DIR_TO_IGNOREDSUBDIRS_ARR[$i]}"
+  DIR_AND_IGNOREDSUBDIRS_ARR=($DIR_AND_IGNOREDSUBDIRS);
+  DIR=${DIR_AND_IGNOREDSUBDIRS_ARR[0]}
+  IGNOREDSUBDIRS=${DIR_AND_IGNOREDSUBDIRS_ARR[1]}
+  # This one is an array so we take an extra ignoreSubdirs to strip out [ ] and ""
+  echo "${DIR}_IGNOREDSUBDIRS=\"${IGNOREDSUBDIRS}\"" >> "${GEN_EVERYTHING}"
 done
 
 ALL_DIR_TO_OCAMLC_FLAGS=$("${PESY_DIR}/pesy-JSON.sh" < "${cur__root}/package.json" |  sed -n 's;\["buildDirs","\([^"]*\)","ocamlcFlags"\][[:space:]]*\(.*\);\1=\2;p')
