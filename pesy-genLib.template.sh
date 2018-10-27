@@ -62,6 +62,9 @@ LIB_DUNE_CONTENTS=$(printf "%s\\n%s\\n" "${LIB_DUNE_CONTENTS}" ")")
 if [ ! -z "${<DIR>_IGNOREDSUBDIRS}" ]; then
   LIB_DUNE_CONTENTS=$(printf "%s\\n%s\\n" "${LIB_DUNE_CONTENTS}" "(ignored_subdirs (${<DIR>_IGNOREDSUBDIRS}))  ; From package.json ignoreSubdirs field")
 fi
+if [ ! -z "${<DIR>_INCLUDESUBDIRS}" ]; then
+  LIB_DUNE_CONTENTS=$(printf "%s\\n%s\\n" "${LIB_DUNE_CONTENTS}" "(include_subdirs ${<DIR>_INCLUDESUBDIRS})  ; From package.json includeSubdirs field")
+fi
 
 if [ "${LIB_DUNE_EXISTING_CONTENTS}" == "${LIB_DUNE_CONTENTS}" ]; then
   true

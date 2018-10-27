@@ -33,7 +33,7 @@ else
     printf "    □  Add a ./dune-project\\n"
   else
     printf "    %s☒%s  Add a ./dune-project\\n" "${BOLD}${GREEN}" "${RESET}"
-    printf "(lang dune 1.0)\\n (name %s)" "${PACKAGE_NAME}" > "${cur__root}/dune-project"
+    printf "(lang dune 1.2)\\n (name %s)" "${PACKAGE_NAME}" > "${cur__root}/dune-project"
   fi
 fi
 

@@ -234,6 +234,7 @@ for ((i=0; i<${#ALL_DIR_TO_NAME_ARR[@]}; ++i)); do
     fi
     SEEN_A_LIB="true"
   fi
+  echo "${DIR}_INCLUDESUBDIRS=\"\"" >> "${GEN_EVERYTHING}"
   echo "#Default Requires" >> "${GEN_EVERYTHING}"
   echo "${DIR}_REQUIRE=\"\"" >> "${GEN_EVERYTHING}"
   echo "#Default Flags" >> "${GEN_EVERYTHING}"
@@ -246,6 +247,19 @@ for ((i=0; i<${#ALL_DIR_TO_NAME_ARR[@]}; ++i)); do
   echo "${DIR}_JSOO_FILES=\"\"" >> "${GEN_EVERYTHING}"
 done
 
+
+ALL_DIR_TO_INCLUDESUBDIRS=$("${PESY_DIR}/pesy-JSON.sh" < "${cur__root}/package.json" |  sed -n 's;\["buildDirs","\([^"]*\)","includeSubdirs"\][[:space:]]*\(.*\);\1=\2;p')
+ALL_DIR_TO_INCLUDESUBDIRS=$(printf "%s" "$ALL_DIR_TO_INCLUDESUBDIRS" | tr -s '\n' '|')
+IFS="|";
+ALL_DIR_TO_INCLUDESUBDIRS_ARR=($ALL_DIR_TO_INCLUDESUBDIRS);
+for ((i=0; i<${#ALL_DIR_TO_INCLUDESUBDIRS_ARR[@]}; ++i)); do
+  IFS="=";
+  DIR_AND_INCLUDESUBDIRS="${ALL_DIR_TO_INCLUDESUBDIRS_ARR[$i]}"
+  DIR_AND_INCLUDESUBDIRS_ARR=($DIR_AND_INCLUDESUBDIRS);
+  DIR=${DIR_AND_INCLUDESUBDIRS_ARR[0]}
+  INCLUDESUBDIRS=${DIR_AND_INCLUDESUBDIRS_ARR[1]}
+  echo "${DIR}_INCLUDESUBDIRS=\"${INCLUDESUBDIRS}\"" >> "${GEN_EVERYTHING}"
+done
 
 ALL_DIR_TO_NAMESPACE=$("${PESY_DIR}/pesy-JSON.sh" < "${cur__root}/package.json" |  sed -n 's;\["buildDirs","\([^"]*\)","namespace"\][[:space:]]*\(.*\);\1=\2;p')
 ALL_DIR_TO_NAMESPACE=$(printf "%s" "$ALL_DIR_TO_NAMESPACE" | tr -s '\n' '|')
