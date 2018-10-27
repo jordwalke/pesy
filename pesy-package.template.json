@@ -37,6 +37,6 @@
     "pesy": "*"
   },
   "devDependencies": {
-    "@esy-ocaml/merlin": "*"
+    "@opam/merlin": "*"
   }
 }
