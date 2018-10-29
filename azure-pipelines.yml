@@ -11,11 +11,11 @@ jobs:
     pool:
       vmImage: 'macOS-10.13'
 
-- template: .ci/build.yaml  # Template reference
-  parameters:
-    name: Linux
-    pool:
-      vmImage: 'Ubuntu-16.04'
+# - template: .ci/build.yaml  # Template reference
+#   parameters:
+#     name: Linux
+#     pool:
+#       vmImage: 'Ubuntu-16.04'
 
 # - template: .ci/build.yaml  # Template reference
 #   parameters:
