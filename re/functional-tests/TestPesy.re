@@ -1,3 +1,5 @@
+/* TODO: Exit status of the System commands are not handled propertly. Test failures are not reported properly. Needs work */
+
 let tmpDir = Filename.get_temp_dir_name();
 let testProject = "test-project";
 let testProjectDir = Filename.concat(tmpDir, testProject);
@@ -26,6 +28,7 @@ let copyTemplate = tpl => {
   /* print_endline("Copied " ++ tpl); */
 };
 
+Sys.command("rm -rf " ++ testProjectDir);
 Sys.command("mkdir " ++ testProjectDir);
 Sys.command("mkdir " ++ Path.(testProjectDir / "bin"));
 Sys.command("mkdir " ++ Path.(testProjectDir / "share"));

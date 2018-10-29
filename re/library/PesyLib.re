@@ -81,42 +81,44 @@ let bootstrap = testMode =>
            packageNameUpperCamelCase,
          );
 
-    if (exists("package.json")) {
-      let _ = LTerm.printls(Copy.projectExistsError);
-      ();
-    } else {
-      write("package.json", packageJSON);
-    };
+    let%lwt _ =
+      if (exists("package.json")) {
+        LTerm.printls(Copy.projectExistsError);
+      } else {
+        write("package.json", packageJSON);
+      };
+    let _ = Sys.command("echo '>>>>>>'; cat package.json");
 
     let appRePath = Path.(Sys.getcwd() / "executable");
     let _ = mkdirp(appRePath);
-    write(Path.(appRePath / "App.re"), appRe);
+    let%lwt _ = write(Path.(appRePath / "App.re"), appRe);
     let utilRePath = Path.(Sys.getcwd() / "library");
     let _ = mkdirp(utilRePath);
-    write(Path.(utilRePath / "Util.re"), utilRe);
+    let%lwt _ = write(Path.(utilRePath / "Util.re"), utilRe);
     let testRePath = Path.(Sys.getcwd() / "test");
     let _ = mkdirp(testRePath);
-    write(
-      Path.(testRePath / "Test" ++ packageNameUpperCamelCase ++ ".re"),
-      testRe,
-    );
+    let%lwt _ =
+      write(
+        Path.(testRePath / "Test" ++ packageNameUpperCamelCase ++ ".re"),
+        testRe,
+      );
 
-    if (exists("README.md")) {
-      let _ = LTerm.printls(Copy.readmeExistsWarning);
-      ();
-    } else {
-      write("README.md", readMe);
-    };
+    let%lwt _ =
+      if (exists("README.md")) {
+        LTerm.printls(Copy.readmeExistsWarning);
+      } else {
+        write("README.md", readMe);
+      };
 
-    if (exists(".gitignore")) {
-      let _ = LTerm.printls(Copy.gitignoreExistsWarning);
-      ();
-    } else {
-      write(".gitignore", gitignore);
-    };
+    let%lwt _ =
+      if (exists(".gitignore")) {
+        LTerm.printls(Copy.gitignoreExistsWarning);
+      } else {
+        write(".gitignore", gitignore);
+      };
 
     /*  @esy-ocaml/foo-package -> foo-package */
-    let _ =
+    let%lwt _ =
       LTerm.printls(
         LTerm_text.eval([
           LTerm_text.S(

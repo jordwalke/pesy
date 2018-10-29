@@ -44,10 +44,10 @@ let removeScope = kebab =>
 let getEnv = Sys.getenv_opt;
 
 let write = (file, str) => {
-  let fileChannel =
-    open_out_gen([Open_creat, Open_text, Open_append], 0o640, file);
-  Printf.fprintf(fileChannel, "%s", str);
-  close_out(fileChannel);
+  open Lwt_io;
+  let%lwt fileChannel = open_file(Output, file);
+  let%lwt _ = write_line(fileChannel, str);
+  close(fileChannel);
 };
 
 let readFile = file => {
