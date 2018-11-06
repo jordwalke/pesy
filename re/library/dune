@@ -1,5 +1,5 @@
 (library
 (name PesyLib)
 (public_name pesy.lib)
-(libraries str react lwt lambda-term pesy.utils)
+(libraries str react lwt lambda-term pesy.utils sexplib yojson)
 (preprocess (pps lwt_ppx)))

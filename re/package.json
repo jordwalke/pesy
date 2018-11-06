@@ -5,13 +5,20 @@
   "esy": {
     "build": [
       "refmterr dune build -p #{self.name}",
+      "mkdir -p #{self.root / '_build' / 'default' / 'share' / 'template-repo'}",
       "mkdir -p #{self.install / 'share' / 'template-repo'}",
       "cp #{self.root / 'pesy-package.template.json'} #{self.install / 'share' / 'template-repo' / 'pesy-package.template.json'}",
+      "cp #{self.root / 'pesy-package.template.json'} #{self.root / '_build' / 'default' / 'share' / 'template-repo' / 'pesy-package.template.json'}",
+      "cp #{self.root / 'pesy-App.template.re'} #{ self.root / '_build' / 'default' / 'share' /  'template-repo' / 'pesy-App.template.re' }",
       "cp #{self.root / 'pesy-App.template.re'} #{ self.install / 'share' /  'template-repo' / 'pesy-App.template.re' }",
       "cp #{self.root / 'pesy-Test.template.re'} #{ self.install / 'share' /  'template-repo' / 'pesy-Test.template.re' }",
+      "cp #{self.root / 'pesy-Test.template.re'} #{ self.root / '_build' / 'default' / 'share' /  'template-repo' / 'pesy-Test.template.re' }",
       "cp #{self.root / 'pesy-Util.template.re'} #{ self.install / 'share' /  'template-repo' / 'pesy-Util.template.re' }",
+      "cp #{self.root / 'pesy-Util.template.re'} #{ self.root / '_build' / 'default' / 'share' /  'template-repo' / 'pesy-Util.template.re' }",
       "cp #{self.root / 'pesy-README.template.md'} #{ self.install / 'share' /  'template-repo' / 'pesy-README.template.md' }",
-      "cp #{self.root / 'pesy-gitignore.template'} #{ self.install / 'share' /  'template-repo' / 'pesy-gitignore.template' }"
+      "cp #{self.root / 'pesy-README.template.md'} #{ self.root / '_build' / 'default' / 'share' / 'template-repo' / 'pesy-README.template.md' }",
+      "cp #{self.root / 'pesy-gitignore.template'} #{ self.install / 'share' /  'template-repo' / 'pesy-gitignore.template' }",
+      "cp #{self.root / 'pesy-gitignore.template'} #{ self.root / '_build' / 'default' / 'share' /  'template-repo' / 'pesy-gitignore.template' }"
     ],
     "buildsInSource": "_build",
     "release": { "releasedBinaries": [ "Pesy.exe" ] }
@@ -36,6 +43,8 @@
     "@opam/lwt": "4.1.0",
     "@opam/lwt_ppx": "1.2.1",
     "@opam/ppx_inline_test": "v0.11.0",
+    "@opam/sexplib": "v0.11.0",
+    "@opam/yojson": "1.4.1",
     "ocaml": "~4.6.0",
     "pesy": "*",
     "refmterr": "*"
