@@ -7,7 +7,7 @@ else
     printf "    □  Update ./dune to ignore node_modules\\n"
   else
     printf "    %s☒%s  Update ./dune to ignore node_modules\\n" "${BOLD}${GREEN}" "${RESET}"
-    printf "(ignored_subdirs (node_modules))" > "${cur__root}/dune"
+    printf "(ignored_subdirs (node_modules _esy))" > "${cur__root}/dune"
   fi
 fi
 
