@@ -248,7 +248,8 @@ for ((i=0; i<${#ALL_DIR_TO_NAME_ARR[@]}; ++i)); do
 done
 
 
-ALL_DIR_TO_INCLUDESUBDIRS=$("${PESY_DIR}/pesy-JSON.sh" < "${cur__root}/package.json" |  sed -n 's;\["buildDirs","\([^"]*\)","includeSubdirs"\][[:space:]]*\(.*\);\1=\2;p')
+PARSED=$("${PESY_DIR}/pesy-JSON.sh" < "${cur__root}/package.json")
+ALL_DIR_TO_INCLUDESUBDIRS=$(printf "%s" "${PARSED}" |  sed -n 's;\["buildDirs","\([^"]*\)","includeSubdirs"\][[:space:]]*\(.*\);\1=\2;p')
 ALL_DIR_TO_INCLUDESUBDIRS=$(printf "%s" "$ALL_DIR_TO_INCLUDESUBDIRS" | tr -s '\n' '|')
 IFS="|";
 ALL_DIR_TO_INCLUDESUBDIRS_ARR=($ALL_DIR_TO_INCLUDESUBDIRS);
@@ -261,7 +262,7 @@ for ((i=0; i<${#ALL_DIR_TO_INCLUDESUBDIRS_ARR[@]}; ++i)); do
   echo "${DIR}_INCLUDESUBDIRS=\"${INCLUDESUBDIRS}\"" >> "${GEN_EVERYTHING}"
 done
 
-ALL_DIR_TO_NAMESPACE=$("${PESY_DIR}/pesy-JSON.sh" < "${cur__root}/package.json" |  sed -n 's;\["buildDirs","\([^"]*\)","namespace"\][[:space:]]*\(.*\);\1=\2;p')
+ALL_DIR_TO_NAMESPACE=$(printf "%s" "${PARSED}" |  sed -n 's;\["buildDirs","\([^"]*\)","namespace"\][[:space:]]*\(.*\);\1=\2;p')
 ALL_DIR_TO_NAMESPACE=$(printf "%s" "$ALL_DIR_TO_NAMESPACE" | tr -s '\n' '|')
 IFS="|";
 ALL_DIR_TO_NAMESPACE_ARR=($ALL_DIR_TO_NAMESPACE);
@@ -274,7 +275,7 @@ for ((i=0; i<${#ALL_DIR_TO_NAMESPACE_ARR[@]}; ++i)); do
   echo "${DIR}_NAMESPACE=\"${NAMESPACE}\"" >> "${GEN_EVERYTHING}"
 done
 
-ALL_DIR_TO_MAIN=$("${PESY_DIR}/pesy-JSON.sh" < "${cur__root}/package.json" |  sed -n 's;\["buildDirs","\([^"]*\)","main"\][[:space:]]*\(.*\);\1=\2;p')
+ALL_DIR_TO_MAIN=$(printf "%s" "${PARSED}" |  sed -n 's;\["buildDirs","\([^"]*\)","main"\][[:space:]]*\(.*\);\1=\2;p')
 ALL_DIR_TO_MAIN=$(printf "%s" "$ALL_DIR_TO_MAIN" | tr -s '\n' '|')
 IFS="|";
 ALL_DIR_TO_MAIN_ARR=($ALL_DIR_TO_MAIN);
@@ -287,7 +288,7 @@ for ((i=0; i<${#ALL_DIR_TO_MAIN_ARR[@]}; ++i)); do
   echo "${DIR}_MAIN_MODULE=\"${MAIN}\"" >> "${GEN_EVERYTHING}"
 done
 
-ALL_DIR_TO_REQUIRE=$("${PESY_DIR}/pesy-JSON.sh" < "${cur__root}/package.json" |  sed -n 's;\["buildDirs","\([^"]*\)","require"\][[:space:]]*\(.*\);\1=\2;p')
+ALL_DIR_TO_REQUIRE=$(printf "%s" "${PARSED}" |  sed -n 's;\["buildDirs","\([^"]*\)","require"\][[:space:]]*\(.*\);\1=\2;p')
 ALL_DIR_TO_REQUIRE=$(printf "$ALL_DIR_TO_REQUIRE" | tr -s '["],' ' ')
 ALL_DIR_TO_REQUIRE=$(printf "%s" "$ALL_DIR_TO_REQUIRE" | tr -s '\n' '|')
 IFS="|";
@@ -302,7 +303,7 @@ for ((i=0; i<${#ALL_DIR_TO_REQUIRE_ARR[@]}; ++i)); do
   echo "${DIR}_REQUIRE=\"${REQUIRE}\"" >> "${GEN_EVERYTHING}"
 done
 
-ALL_DIR_TO_FLAGS=$("${PESY_DIR}/pesy-JSON.sh" < "${cur__root}/package.json" |  sed -n 's;\["buildDirs","\([^"]*\)","flags"\][[:space:]]*\(.*\);\1=\2;p')
+ALL_DIR_TO_FLAGS=$(printf "%s" "${PARSED}" |  sed -n 's;\["buildDirs","\([^"]*\)","flags"\][[:space:]]*\(.*\);\1=\2;p')
 ALL_DIR_TO_FLAGS=$(printf "$ALL_DIR_TO_FLAGS" | tr -s '["],' ' ')
 ALL_DIR_TO_FLAGS=$(printf "%s" "$ALL_DIR_TO_FLAGS" | tr -s '\n' '|')
 IFS="|";
@@ -317,7 +318,7 @@ for ((i=0; i<${#ALL_DIR_TO_FLAGS_ARR[@]}; ++i)); do
   echo "${DIR}_FLAGS=\"${FLAGS}\"" >> "${GEN_EVERYTHING}"
 done
 
-ALL_DIR_TO_IGNOREDSUBDIRS=$("${PESY_DIR}/pesy-JSON.sh" < "${cur__root}/package.json" |  sed -n 's;\["buildDirs","\([^"]*\)","ignoredSubdirs"\][[:space:]]*\(.*\);\1=\2;p')
+ALL_DIR_TO_IGNOREDSUBDIRS=$(printf "%s" "${PARSED}" |  sed -n 's;\["buildDirs","\([^"]*\)","ignoredSubdirs"\][[:space:]]*\(.*\);\1=\2;p')
 ALL_DIR_TO_IGNOREDSUBDIRS=$(printf "$ALL_DIR_TO_IGNOREDSUBDIRS" | tr -s '["],' ' ')
 ALL_DIR_TO_IGNOREDSUBDIRS=$(printf "%s" "$ALL_DIR_TO_IGNOREDSUBDIRS" | tr -s '\n' '|')
 IFS="|";
@@ -332,7 +333,7 @@ for ((i=0; i<${#ALL_DIR_TO_IGNOREDSUBDIRS_ARR[@]}; ++i)); do
   echo "${DIR}_IGNOREDSUBDIRS=\"${IGNOREDSUBDIRS}\"" >> "${GEN_EVERYTHING}"
 done
 
-ALL_DIR_TO_OCAMLC_FLAGS=$("${PESY_DIR}/pesy-JSON.sh" < "${cur__root}/package.json" |  sed -n 's;\["buildDirs","\([^"]*\)","ocamlcFlags"\][[:space:]]*\(.*\);\1=\2;p')
+ALL_DIR_TO_OCAMLC_FLAGS=$(printf "${PARSED}" | sed -n 's;\["buildDirs","\([^"]*\)","ocamlcFlags"\][[:space:]]*\(.*\);\1=\2;p')
 ALL_DIR_TO_OCAMLC_FLAGS=$(printf "$ALL_DIR_TO_OCAMLC_FLAGS" | tr -s '["],' ' ')
 ALL_DIR_TO_OCAMLC_FLAGS=$(printf "%s" "$ALL_DIR_TO_OCAMLC_FLAGS" | tr -s '\n' '|')
 IFS="|";
@@ -347,7 +348,7 @@ for ((i=0; i<${#ALL_DIR_TO_OCAMLC_FLAGS_ARR[@]}; ++i)); do
   echo "${DIR}_OCAMLC_FLAGS=\"${FLAGS}\"" >> "${GEN_EVERYTHING}"
 done
 
-ALL_DIR_TO_OCAMLOPT_FLAGS=$("${PESY_DIR}/pesy-JSON.sh" < "${cur__root}/package.json" |  sed -n 's;\["buildDirs","\([^"]*\)","ocamloptFlags"\][[:space:]]*\(.*\);\1=\2;p')
+ALL_DIR_TO_OCAMLOPT_FLAGS=$(printf "%s" "${PARSED}" |  sed -n 's;\["buildDirs","\([^"]*\)","ocamloptFlags"\][[:space:]]*\(.*\);\1=\2;p')
 ALL_DIR_TO_OCAMLOPT_FLAGS=$(printf "$ALL_DIR_TO_OCAMLOPT_FLAGS" | tr -s '["],' ' ')
 ALL_DIR_TO_OCAMLOPT_FLAGS=$(printf "%s" "$ALL_DIR_TO_OCAMLOPT_FLAGS" | tr -s '\n' '|')
 IFS="|";
@@ -362,7 +363,7 @@ for ((i=0; i<${#ALL_DIR_TO_OCAMLOPT_FLAGS_ARR[@]}; ++i)); do
   echo "${DIR}_OCAMLOPT_FLAGS=\"${FLAGS}\"" >> "${GEN_EVERYTHING}"
 done
 
-ALL_DIR_TO_C_NAMES=$("${PESY_DIR}/pesy-JSON.sh" < "${cur__root}/package.json" |  sed -n 's;\["buildDirs","\([^"]*\)","cNames"\][[:space:]]*\(.*\);\1=\2;p')
+ALL_DIR_TO_C_NAMES=$(printf "%s" "${PARSED}" | sed -n 's;\["buildDirs","\([^"]*\)","cNames"\][[:space:]]*\(.*\);\1=\2;p')
 ALL_DIR_TO_C_NAMES=$(printf "$ALL_DIR_TO_C_NAMES" | tr -s '["],' ' ')
 ALL_DIR_TO_C_NAMES=$(printf "%s" "$ALL_DIR_TO_C_NAMES" | tr -s '\n' '|')
 IFS="|";
@@ -378,27 +379,29 @@ for ((i=0; i<${#ALL_DIR_TO_C_NAMES_ARR[@]}; ++i)); do
 done
 
 
+# TODO: If not moving to native, we should make all the other list parsers use
+# this approach instead.
 # Need to achieve the following:
 # ...
 # (public_name console.lib)
 #  (js_of_ocaml (flags (:standard --pretty))
 #              (javascript_files nativeChannels.js))
-ALL_DIR_TO_JSOO_FLAGS=$("${PESY_DIR}/pesy-JSON.sh" < "${cur__root}/package.json" |  sed -n 's;\["buildDirs","\([^"]*\)","jsooFlags"\][[:space:]]*\(.*\);\1=\2;p')
-ALL_DIR_TO_JSOO_FLAGS=$(printf "$ALL_DIR_TO_JSOO_FLAGS" | tr -s '["],' ' ')
-ALL_DIR_TO_JSOO_FLAGS=$(printf "%s" "$ALL_DIR_TO_JSOO_FLAGS" | tr -s '\n' '|')
-IFS="|";
-ALL_DIR_TO_JSOO_FLAGS_ARR=($ALL_DIR_TO_JSOO_FLAGS);
-for ((i=0; i<${#ALL_DIR_TO_JSOO_FLAGS_ARR[@]}; ++i)); do
-  IFS="=";
-  DIR_AND_JSOO_FLAGS="${ALL_DIR_TO_JSOO_FLAGS_ARR[$i]}"
-  DIR_AND_JSOO_FLAGS_ARR=($DIR_AND_JSOO_FLAGS);
-  DIR=${DIR_AND_JSOO_FLAGS_ARR[0]}
-  FLAGS=${DIR_AND_JSOO_FLAGS_ARR[1]}
+#                                                                                                                                                                  ["                "]                          "," (not escpaed quote)       Remaining quotes?
+# OSX doen't have extended or pattern regexes. Need multiple pipes.
+# Two parallel arrays with the same length
+ALL_DIRS_JSOO_FLAGS=$(printf "%s" "${PARSED}" |  sed -n 's;\["buildDirs","\([^"]*\)","jsooFlags"\][[:space:]]*\(.*\);\2;p' | sed 's;\[";;g' | sed 's;\([^\\]\)"\];\1;g' | sed 's;\([^\\]\)",";\1 ;g')
+ALL_DIRS_WITH_JSOO_FLAGS=$(printf "%s" "${PARSED}" |  sed -n 's;\["buildDirs","\([^"]*\)","jsooFlags"\][[:space:]]*\(.*\);\1;p')
+IFS=$'\n'
+ALL_DIRS_JSOO_FLAGS_ARR=($ALL_DIRS_JSOO_FLAGS);
+ALL_DIRS_WITH_JSOO_FLAGS_ARR=($ALL_DIRS_WITH_JSOO_FLAGS);
+for ((i=0; i<${#ALL_DIRS_WITH_JSOO_FLAGS_ARR[@]}; ++i)); do
+  DIR="${ALL_DIRS_WITH_JSOO_FLAGS_ARR[$i]}"
+  FLAGS="${ALL_DIRS_JSOO_FLAGS_ARR[$i]}"
   # This one is an array so we take an extra step to strip out [ ] and ""
   echo "${DIR}_JSOO_FLAGS=\"${FLAGS}\"" >> "${GEN_EVERYTHING}"
 done
 
-ALL_DIR_TO_JSOO_FILES=$("${PESY_DIR}/pesy-JSON.sh" < "${cur__root}/package.json" |  sed -n 's;\["buildDirs","\([^"]*\)","jsooFiles"\][[:space:]]*\(.*\);\1=\2;p')
+ALL_DIR_TO_JSOO_FILES=$(printf "%s" "${PARSED}" | sed -n 's;\["buildDirs","\([^"]*\)","jsooFiles"\][[:space:]]*\(.*\);\1=\2;p')
 ALL_DIR_TO_JSOO_FILES=$(printf "$ALL_DIR_TO_JSOO_FILES" | tr -s '["],' ' ')
 ALL_DIR_TO_JSOO_FILES=$(printf "%s" "$ALL_DIR_TO_JSOO_FILES" | tr -s '\n' '|')
 IFS="|";
