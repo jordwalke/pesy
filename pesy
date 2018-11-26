@@ -242,6 +242,7 @@ for ((i=0; i<${#ALL_DIR_TO_NAME_ARR[@]}; ++i)); do
   echo "${DIR}_IGNOREDSUBDIRS=\"\"" >> "${GEN_EVERYTHING}"
   echo "${DIR}_OCAMLC_FLAGS=\"\"" >> "${GEN_EVERYTHING}"
   echo "${DIR}_OCAMLOPT_FLAGS=\"\"" >> "${GEN_EVERYTHING}"
+  echo "${DIR}_PREPROCESS=\"\"" >> "${GEN_EVERYTHING}"
   echo "${DIR}_C_NAMES=\"\"" >> "${GEN_EVERYTHING}"
   echo "${DIR}_JSOO_FLAGS=\"\"" >> "${GEN_EVERYTHING}"
   echo "${DIR}_JSOO_FILES=\"\"" >> "${GEN_EVERYTHING}"
@@ -361,6 +362,21 @@ for ((i=0; i<${#ALL_DIR_TO_OCAMLOPT_FLAGS_ARR[@]}; ++i)); do
   FLAGS=${DIR_AND_OCAMLOPT_FLAGS_ARR[1]}
   # This one is an array so we take an extra step to strip out [ ] and ""
   echo "${DIR}_OCAMLOPT_FLAGS=\"${FLAGS}\"" >> "${GEN_EVERYTHING}"
+done
+
+ALL_DIR_TO_PREPROCESS=$(printf "${PARSED}" | sed -n 's;\["buildDirs","\([^"]*\)","preprocess"\][[:space:]]*\(.*\);\1=\2;p')
+ALL_DIR_TO_PREPROCESS=$(printf "$ALL_DIR_TO_PREPROCESS" | tr -s '["],' ' ')
+ALL_DIR_TO_PREPROCESS=$(printf "%s" "$ALL_DIR_TO_PREPROCESS" | tr -s '\n' '|')
+IFS="|";
+ALL_DIR_TO_PREPROCESS_ARR=($ALL_DIR_TO_PREPROCESS);
+for ((i=0; i<${#ALL_DIR_TO_PREPROCESS_ARR[@]}; ++i)); do
+  IFS="=";
+  DIR_AND_PREPROCESS="${ALL_DIR_TO_PREPROCESS_ARR[$i]}"
+  DIR_AND_PREPROCESS_ARR=($DIR_AND_PREPROCESS);
+  DIR=${DIR_AND_PREPROCESS_ARR[0]}
+  FLAGS=${DIR_AND_PREPROCESS_ARR[1]}
+  # This one is an array so we take an extra step to strip out [ ] and ""
+  echo "${DIR}_PREPROCESS=\"${FLAGS}\"" >> "${GEN_EVERYTHING}"
 done
 
 ALL_DIR_TO_C_NAMES=$(printf "%s" "${PARSED}" | sed -n 's;\["buildDirs","\([^"]*\)","cNames"\][[:space:]]*\(.*\);\1=\2;p')
