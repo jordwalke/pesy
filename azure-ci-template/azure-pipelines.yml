@@ -12,7 +12,7 @@ jobs:
 
   variables:
     ESY__CACHE_INSTALL_PATH: /home/vsts/.esy/3_____________________________________________________________________/i/
-    ESY__CACHE_SOURCE_TARBALL_PATH: /home/vsts/.esy/source-tarballs
+    ESY__CACHE_SOURCE_TARBALL_PATH: /home/vsts/.esy/source/i
 
   steps:
   # TODO: Uncomment this when you have a green build, to enable caching
@@ -27,7 +27,7 @@ jobs:
 
   variables:
     ESY__CACHE_INSTALL_PATH: /Users/vsts/.esy/3____________________________________________________________________/i/
-    ESY__CACHE_SOURCE_TARBALL_PATH: /Users/vsts/.esy/source-tarballs
+    ESY__CACHE_SOURCE_TARBALL_PATH: /Users/vsts/.esy/source/i
 
   steps:
   # TODO: Uncomment this when you have a green build, to enable caching
@@ -42,7 +42,7 @@ jobs:
 
   variables:
     ESY__CACHE_INSTALL_PATH: C:\Users\VssAdministrator\.esy\3_\i
-    ESY__CACHE_SOURCE_TARBALL_PATH: C:\Users\VssAdministrator\.esy\source-tarballs
+    ESY__CACHE_SOURCE_TARBALL_PATH: C:\Users\VssAdministrator\.esy\source\i
 
   steps:
   # TODO: Uncomment this when you have a green build, to enable caching
