@@ -30,7 +30,6 @@ else
 fi
 set -u
 
-
 LAST_EXE_NAME=""
 NOTIFIED_USER="false"
 BUILD_STALE_PROBLEM="false"
