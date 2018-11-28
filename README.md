@@ -3,7 +3,6 @@
 - Use `package.json` to declare libraries and executables.
 - Generates `dune` config per directory.
 
-
 ![screenshot](./images/screenshot.png "Demo")
 
 ## `pesy` modes:
@@ -21,7 +20,7 @@ inside of any directory. The project name is determined by the current
 directory, and the generated projects will use invoke each build with `pesy` to
 keep the `dune` build config in sync.
 
-```
+```sh
 npm install -g pesy
 
 mkdir my-project
@@ -34,7 +33,7 @@ This creates:
 - `package.json` with useful dependencies/compilers.
 - `.gitignore` and `README.md` with instructions for new contributors.
 - `.circleci` continuous integration with cache configured for ultra-fast pull
-  requests.
+    requests.
 - `library/`, `executable/` and `test/` directory with starter modules.
 
 The created project uses `pesy` in its build step. As always, run `esy pesy`
@@ -66,23 +65,27 @@ well, but to add `pesy` to an existing project, follow these steps:
 
 **1. Add a dependency on `pesy`, and configure `buildDirs`:**
 
-    "name": "my-package",
-    "dependencies": {
-      "pesy": "*"
+```json
+{
+  "name": "my-package",
+  "dependencies": {
+    "pesy": "*"
+  },
+  "buildDirs": {
+    "exampleLib": {
+      "namespace": "Examples",
+      "name": "my-package.example-lib",
+      "require": [ "bos.top" ]
     },
-    "buildDirs": {
-      "exampleLib": {
-        "namespace": "Examples",
-        "name": "my-package.example-lib",
-        "require": [ "bos.top" ]
-      },
-      "bin": {
-        "name": "my-package.exe",
-        "require": [
-          "my-package.lib"
-        ]
-      }
+    "bin": {
+      "name": "my-package.exe",
+      "require": [
+        "my-package.lib"
+      ]
     }
+  }
+}
+```
 
 **2.Install and Build:**
 
@@ -104,14 +107,13 @@ git clone git@github.com:jordwalke/esy-peasy-starter.git
 esy install
 esy pesy    # Use pesy to configure build from package.json
 esy build
-
 ```
 
 - Change the `name` of the package, and names of libraries in `buildDirs`
   accordingly.
 - Then rerun:
 
-```
+```sh
 esy pesy
 esy build
 ```
@@ -127,29 +129,33 @@ builds and runs your built `YourPackage.exe` executable with arguments.
 
 - Add dependencies to `dependencies` in `package.json`.
 - Add the name of that new dependencies *library*  to `package.json`'s
-  `buildDirs` section that you want to use the library within. For example, if
-  your project builds a library in the `exampleLib/` directory, and you want it
-  to depend on a library named `bos.top` from an opam package named `bos`,
-  change the `package.json` to look like this:
+    `buildDirs` section that you want to use the library within. For example, if
+    your project builds a library in the `exampleLib/` directory, and you want it
+    to depend on a library named `bos.top` from an opam package named `bos`,
+    change the `package.json` to look like this:
    
-    "name": "my-package",
-    "dependencies": {
-      "@opam/bos": "*"
-    },
-    "buildDirs": {
-      "exampleLib": {
-        "namespace": "Examples",
-        "name": "my-package.example-lib",
-        "require": [ "bos.top" ]
+    ```json
+    {
+      "name": "my-package",
+      "dependencies": {
+        "@opam/bos": "*"
+      },
+      "buildDirs": {
+        "exampleLib": {
+          "namespace": "Examples",
+          "name": "my-package.example-lib",
+          "require": [ "bos.top" ]
+        }
       }
     }
+    ```
 
 - Then run:
-```
-esy install  # Fetch dependency sources
-esy pesy     # Configure the build based on package.json
-esy build    # Do the build
-```
+    ```sh
+    esy install  # Fetch dependency sources
+    esy pesy     # Configure the build based on package.json
+    esy build    # Do the build
+    ```
  
 > Note: After adding/building a new dependency you can use `esy ls-libs` to see
 > which named libraries become available to you by adding the package
@@ -160,8 +166,8 @@ esy build    # Do the build
 
 
 ## Tradeoffs:
-`esy-peasy` is good for rapidly making new small executables/libraries. Once they
-grow, you'll want to "eject out" of `esy-peasy` and begin customizing using a more
+`esy-pesy` is good for rapidly making new small executables/libraries. Once they
+grow, you'll want to "eject out" of `esy-pesy` and begin customizing using a more
 advanced build system.
 
 
@@ -175,10 +181,15 @@ add support for more config fields, PRs are welcomed.
 **Libraries**
 - `name`: The name of the library
 - `namespace`: The name that other modules will _see_ your module as, within
-  their source code, if they `require` your library.
+    their source code, if they `require` your library.
+- `cNames`: Array of strings to use as C stubs (filenames without the `.c` extension).
 
 **Both**
-- `require`: Array of strings (public library names)
-- `jsooFlags`: Array of flags passed to jsoo.
-- `ignoreSubdirs` : Array of subdirectory names to ignore
-- `includeSubdirs` : (string) either "no" or "unqualified"
+- `require`: Array of strings (public library names).
+- `flags`: Array of strings to pass to both `ocamlc` and `ocamlopt`.
+- `ocamlcFlags`: Array of flags to pass to `ocamlc`.
+- `ocamloptFlags`: Array of flags to pass to `ocamlopt`.
+- `jsooFlags`: Array of flags passed to `jsoo`.
+- `preprocess`: Array of preprocess options to enable. Primarily used to enable PPX.
+- `ignoredSubdirs` : Array of subdirectory names to ignore.
+- `includeSubdirs` : (string) either "no" or "unqualified".
