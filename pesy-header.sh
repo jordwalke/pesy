@@ -11,7 +11,24 @@ YELLOW=`tput setaf 3` || YELLOW=''
 RESET=`tput sgr0` || RESET=''
 
 MODE="update"
-[[ $SHELL =~ "noprofile" ]] && MODE="build"
+
+# On Windows, the 'esy pesy' syntax doesn't work as we want it to -
+# our bash environment there is always run with 'noprofile',
+# so 'pesy' always runs in build mode instead of update mode.
+
+# To make this command work cross-platform, we add a way to override
+# the mode via the 'PESY_MODE' environment variable.
+
+set +u
+if [ ! -z "${PESY_MODE}" ]; then
+  printf "PESY MODE"
+  MODE="$PESY_MODE"
+else 
+  if [[ $SHELL =~ "noprofile" ]]; then
+    MODE="build"
+  fi
+fi
+set -u
 
 
 LAST_EXE_NAME=""
