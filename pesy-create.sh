@@ -134,7 +134,7 @@ if [ -f  "${PWD}/azure-pipelines.yml" ]; then
 else
   mkdir -p "${PWD}/.ci"
   cp "${PESY_DIR}/azure-ci-template/azure-pipelines.yml" "${PWD}/azure-pipelines.yml"
-  cp "${PESY_DIR}/azure-ci-template/esy-build-steps.yml" "${PWD}/.ci/esy-build-steps.yml"
+  sed  -e "s;<PACKAGE_NAME_FULL>;${PACKAGE_NAME_FULL};g; s;<PACKAGE_NAME>;${PACKAGE_NAME};g; s;<PUBLIC_LIB_NAME>;${PUBLIC_LIB_NAME};g; s;<PACKAGE_NAME_UPPER_CAMEL>;${PACKAGE_NAME_UPPER_CAMEL};g" "${PESY_DIR}/esy-build-steps.template.yml"  >> "${PWD}/.ci/esy-build-steps.yml"
   cp "${PESY_DIR}/azure-ci-template/publish-build-cache.yml" "${PWD}/.ci/publish-build-cache.yml"
   cp "${PESY_DIR}/azure-ci-template/restore-build-cache.yml" "${PWD}/.ci/restore-build-cache.yml"
 fi
