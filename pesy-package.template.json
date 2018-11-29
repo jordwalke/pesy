@@ -27,6 +27,7 @@
     }
   },
   "scripts": {
+    "pesy": "bash -c 'env PESY_MODE=update pesy'",
     "test": "esy x Test<PACKAGE_NAME_UPPER_CAMEL>.exe"
   },
   "dependencies": {
