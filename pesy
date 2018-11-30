@@ -263,7 +263,7 @@ for ((i=0; i<${#ALL_DIR_TO_INCLUDESUBDIRS_ARR[@]}; ++i)); do
   echo "${DIR}_INCLUDESUBDIRS=\"${INCLUDESUBDIRS}\"" >> "${GEN_EVERYTHING}"
 done
 
-ALL_DIR_TO_NAMESPACE=$(printf "%s" "${PARSED}" |  sed -n 's;\["buildDirs","\([^"]*\)","namespace"\][[:space:]]*\(.*\);\1=\2;p')
+ALL_DIR_TO_NAMESPACE=$(printf "%s" "${PARSED}" |  sed -n 's;\["buildDirs","\([^"]*\)","namespace"\][[:space:]]*"\(.*\)";\1=\2;p')
 ALL_DIR_TO_NAMESPACE=$(printf "%s" "$ALL_DIR_TO_NAMESPACE" | tr -s '\n' '|')
 IFS="|";
 ALL_DIR_TO_NAMESPACE_ARR=($ALL_DIR_TO_NAMESPACE);
@@ -276,7 +276,7 @@ for ((i=0; i<${#ALL_DIR_TO_NAMESPACE_ARR[@]}; ++i)); do
   echo "${DIR}_NAMESPACE=\"${NAMESPACE}\"" >> "${GEN_EVERYTHING}"
 done
 
-ALL_DIR_TO_MAIN=$(printf "%s" "${PARSED}" |  sed -n 's;\["buildDirs","\([^"]*\)","main"\][[:space:]]*\(.*\);\1=\2;p')
+ALL_DIR_TO_MAIN=$(printf "%s" "${PARSED}" |  sed -n 's;\["buildDirs","\([^"]*\)","main"\][[:space:]]*"\(.*\)";\1=\2;p')
 ALL_DIR_TO_MAIN=$(printf "%s" "$ALL_DIR_TO_MAIN" | tr -s '\n' '|')
 IFS="|";
 ALL_DIR_TO_MAIN_ARR=($ALL_DIR_TO_MAIN);
