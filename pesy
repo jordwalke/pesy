@@ -315,6 +315,9 @@ for ((i=0; i<${#ALL_DIR_TO_FLAGS_ARR[@]}; ++i)); do
   DIR_AND_FLAGS_ARR=($DIR_AND_FLAGS);
   DIR=${DIR_AND_FLAGS_ARR[0]}
   FLAGS=${DIR_AND_FLAGS_ARR[1]}
+  # Escape any dollar signs
+  FLAGS="${FLAGS//\\[^n\"]/\\\\}"
+  FLAGS="${FLAGS//\$/\\\$}"
   # This one is an array so we take an extra step to strip out [ ] and ""
   echo "${DIR}_FLAGS=\"${FLAGS}\"" >> "${GEN_EVERYTHING}"
 done
@@ -345,6 +348,9 @@ for ((i=0; i<${#ALL_DIR_TO_OCAMLC_FLAGS_ARR[@]}; ++i)); do
   DIR_AND_OCAMLC_FLAGS_ARR=($DIR_AND_OCAMLC_FLAGS);
   DIR=${DIR_AND_OCAMLC_FLAGS_ARR[0]}
   FLAGS=${DIR_AND_OCAMLC_FLAGS_ARR[1]}
+  # Escape any dollar signs
+  FLAGS="${FLAGS//\\[^n\"]/\\\\}"
+  FLAGS="${FLAGS//\$/\\\$}"
   # This one is an array so we take an extra step to strip out [ ] and ""
   echo "${DIR}_OCAMLC_FLAGS=\"${FLAGS}\"" >> "${GEN_EVERYTHING}"
 done
@@ -360,6 +366,9 @@ for ((i=0; i<${#ALL_DIR_TO_OCAMLOPT_FLAGS_ARR[@]}; ++i)); do
   DIR_AND_OCAMLOPT_FLAGS_ARR=($DIR_AND_OCAMLOPT_FLAGS);
   DIR=${DIR_AND_OCAMLOPT_FLAGS_ARR[0]}
   FLAGS=${DIR_AND_OCAMLOPT_FLAGS_ARR[1]}
+  # Escape any dollar signs
+  FLAGS="${FLAGS//\\[^n\"]/\\\\}"
+  FLAGS="${FLAGS//\$/\\\$}"
   # This one is an array so we take an extra step to strip out [ ] and ""
   echo "${DIR}_OCAMLOPT_FLAGS=\"${FLAGS}\"" >> "${GEN_EVERYTHING}"
 done
@@ -375,6 +384,9 @@ for ((i=0; i<${#ALL_DIR_TO_PREPROCESS_ARR[@]}; ++i)); do
   DIR_AND_PREPROCESS_ARR=($DIR_AND_PREPROCESS);
   DIR=${DIR_AND_PREPROCESS_ARR[0]}
   FLAGS=${DIR_AND_PREPROCESS_ARR[1]}
+  # Escape any dollar signs
+  FLAGS="${FLAGS//\\[^n\"]/\\\\}"
+  FLAGS="${FLAGS//\$/\\\$}"
   # This one is an array so we take an extra step to strip out [ ] and ""
   echo "${DIR}_PREPROCESS=\"${FLAGS}\"" >> "${GEN_EVERYTHING}"
 done
@@ -413,6 +425,9 @@ ALL_DIRS_WITH_JSOO_FLAGS_ARR=($ALL_DIRS_WITH_JSOO_FLAGS);
 for ((i=0; i<${#ALL_DIRS_WITH_JSOO_FLAGS_ARR[@]}; ++i)); do
   DIR="${ALL_DIRS_WITH_JSOO_FLAGS_ARR[$i]}"
   FLAGS="${ALL_DIRS_JSOO_FLAGS_ARR[$i]}"
+  # Escape any dollar signs
+  FLAGS="${FLAGS//\\[^n\"]/\\\\}"
+  FLAGS="${FLAGS//\$/\\\$}"
   # This one is an array so we take an extra step to strip out [ ] and ""
   echo "${DIR}_JSOO_FLAGS=\"${FLAGS}\"" >> "${GEN_EVERYTHING}"
 done
