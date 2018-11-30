@@ -1,6 +1,6 @@
 {
   "name": "pesy",
-  "version": "0.3.15",
+  "version": "0.3.16",
   "description": "\"Esy Pesy\" - Your Esy Assistant.",
   "bin" : { "pesy" : "./pesy" },
   "esy": {
