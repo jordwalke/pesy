@@ -39,3 +39,5 @@ let gitignoreExistsWarning =
     S(".gitignore already exists. Skipping .gitignore generation."),
     E_fg,
   ]);
+
+let todo = eval([B_fg(red), S("TODO"), E_fg]);

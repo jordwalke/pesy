@@ -1,5 +1,23 @@
 /* TODO: Exit status of the System commands are not handled propertly. Test failures are not reported properly. Needs work */
 
+let rec rimraf = path => {
+  let isDirectory =
+    try (Sys.is_directory(path)) {
+    | _ => false
+    };
+  Sys.(
+    if (isDirectory) {
+      let files = readdir(path);
+      Array.iter(f => rimraf(Filename.concat(path, f)), files);
+      /* Unix.rmdir(path); */
+    } else if (file_exists(path)) {
+      remove(path);
+    } else {
+      ();
+    }
+  );
+};
+
 let tmpDir = Filename.get_temp_dir_name();
 let testProject = "test-project";
 let testProjectDir = Filename.concat(tmpDir, testProject);
@@ -28,7 +46,7 @@ let copyTemplate = tpl => {
   /* print_endline("Copied " ++ tpl); */
 };
 
-Sys.command("rm -rf " ++ testProjectDir);
+rimraf(testProjectDir);
 Sys.command("mkdir " ++ testProjectDir);
 Sys.command("mkdir " ++ Path.(testProjectDir / "bin"));
 Sys.command("mkdir " ++ Path.(testProjectDir / "share"));
@@ -48,7 +66,7 @@ Sys.command(
        / "Pesy.exe"
      )
   ++ " "
-  ++ Path.(testProjectDir / "bin"),
+  ++ Path.(testProjectDir / "bin" / "pesy"),
 );
 copyTemplate("pesy-package.template.json");
 copyTemplate("pesy-App.template.re");
@@ -61,11 +79,12 @@ Sys.chdir(testProjectDir);
 
 Unix.putenv(
   "PATH",
-  Sys.getenv("PATH")
+  Path.(testProjectDir / "bin")
   ++ (Sys.unix ? ":" : ";")
-  ++ Path.(testProjectDir / "bin"),
+  ++ Sys.getenv("PATH"),
 );
 
-Sys.command("Pesy.exe --test-mode");
-Sys.command("esy pesy");
-exit(Sys.command("esy x TestProjectApp.exe"));
+Sys.command("pesy");
+Sys.command("pesy build");
+Sys.command("esy b dune exec TestProjectApp.exe");
+Sys.command("esy b dune exec TestTestProject.exe");

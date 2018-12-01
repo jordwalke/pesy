@@ -125,3 +125,15 @@ let readFileOpt = f =>
   } else {
     None;
   };
+
+/* module Cache = { */
+/*   module CacheInternal = { */
+/*     type t = {path: string}; */
+/*     let init = path => {path: path}; */
+/*   }; */
+/*   let init = () => { */
+/*     /\* let cacheStoragePath = *\/ */
+/*     /\*   Path.((Sys.executable_name |> parent |> parent) / "share" / "cache"); *\/ */
+/*   }; */
+/*   let get = (cache: CacheInternal.t, key: string) => {}; */
+/* }; */

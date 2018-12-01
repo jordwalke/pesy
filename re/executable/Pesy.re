@@ -1,36 +1,51 @@
 open PesyUtils;
 
-let mode: PesyLib.Mode.EsyEnv.t' =
+let userCommand =
+  if (Array.length(Sys.argv) > 1) {
+    Some(Sys.argv[1]);
+  } else {
+    None;
+  };
+
+let projectRoot =
+  switch (Sys.getenv_opt("cur__root")) {
+  | Some(curRoot) =>
+    /**
+     * This means the user ran pesy in an esy environment.
+     * Either as
+     * 1. esy pesy
+     * 2. esy b pesy
+     * 3. esy pesy build
+     * 4. esy b pesy build
+     */
+    curRoot
+  | None =>
+    /**
+     * This mean pesy is being run naked on the shell.
+     * Either it was:
+     *    $ pesy
+     *    $ pesy build
+     */
+    /** TODO prompt user for custom path */
+    Sys.getcwd()
+  };
+
+/* use readFileOpt to read previously computed directory path */
+let mode =
   PesyLib.Mode.EsyEnv.(
-    switch (Sys.getenv_opt("cur__root")) {
-    | Some(curRoot) =>
-      switch (Sys.getenv_opt("SHELL")) {
-      | Some(shell) =>
-        Str.search_forward(Str.regexp("noprofile"), shell, 0) != (-1) ?
-          ESY_ENV(BUILD, curRoot) : ESY_ENV(SHELL, curRoot)
-      | None =>
-        print_endline("Warning: Weird. cur__name present but no SHELL");
-        ESY_ENV(SHELL, curRoot);
-      }
-    | None => NAKED
+    switch (userCommand) {
+    | Some(command) => command == "build" ? BUILD : UPDATE
+    | None => UPDATE
     }
   );
 
-let mode =
-  PesyLib.Mode.EsyEnv.ESY_ENV(PesyLib.Mode.EsyEnv.SHELL, Sys.getenv("PWD"));
-
-PesyLib.Mode.EsyEnv.(
-  Lwt_main.run(
-    switch (mode) {
-    | ESY_ENV(x, curRoot) =>
-      let packageJSONPath = Path.(curRoot / "package.json");
-      let buildDirs = PesyLib.extractPesyConf(packageJSONPath);
-      PesyLib.genBuildFiles(x, curRoot, buildDirs);
-
-    | NAKED =>
-      PesyLib.bootstrap(
-        Array.length(Sys.argv) > 1 && Sys.argv[1] == "--test-mode",
-      )
-    },
-  )
+Lwt_main.run(
+  switch (mode) {
+  | UPDATE =>
+    let%lwt _ = PesyLib.bootstrapIfNecessary(projectRoot);
+    let packageJSONPath = Path.(projectRoot / "package.json");
+    let buildDirs = PesyLib.extractPesyConf(packageJSONPath);
+    PesyLib.generateBuildFiles(projectRoot, buildDirs);
+  | BUILD => PesyLib.build()
+  },
 );
