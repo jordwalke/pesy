@@ -11,16 +11,16 @@ jobs:
     pool:
       vmImage: 'macOS-10.13'
 
-# - template: .ci/build.yaml  # Template reference
-#   parameters:
-#     name: Linux
-#     pool:
-#       vmImage: 'Ubuntu-16.04'
+- template: .ci/build.yaml  # Template reference
+  parameters:
+    name: Linux
+    pool:
+      vmImage: 'Ubuntu-16.04'
 
-# - template: .ci/build.yaml  # Template reference
-#   parameters:
-#     name: Windows
-#     pool:
-#       vmImage: 'vs2017-win2016'      
-#     sign: true  # Extra step on Windows only
+- template: .ci/build.yaml  # Template reference
+  parameters:
+    name: Windows
+    pool:
+      vmImage: 'vs2017-win2016'
+    sign: true  # Extra step on Windows only
     
