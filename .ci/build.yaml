@@ -8,11 +8,11 @@ jobs:
   pool: ${{ parameters.pool }}
   steps:
   - ${{ if eq(parameters.sign, 'true') }}:
-    - script: 'npm install -g esy@next --unsafe-perm'
+    - script: 'npm install -g esy --unsafe-perm'
       displayName: 'Installing deps'
       workingDirectory: 're'
   - ${{ if eq(parameters.sign, 'false') }}:
-    - script: 'sudo npm install -g esy@next --unsafe-perm'
+    - script: 'sudo npm install -g esy --unsafe-perm'
       displayName: 'Installing deps'
       workingDirectory: 're'
   - ${{ if eq(parameters.sign, 'true') }}:
