@@ -3,8 +3,7 @@
   "version": "0.0.0",
   "description": "My Project",
   "esy": {
-    "build": [
-      "refmterr dune build -p #{self.name}",
+    "install": [
       "mkdir -p #{self.root / '_build' / 'default' / 'share' / 'template-repo'}",
       "mkdir -p #{self.install / 'share' / 'template-repo'}",
       "cp #{self.root / 'pesy-package.template.json'} #{self.install / 'share' / 'template-repo' / 'pesy-package.template.json'}",
@@ -19,6 +18,9 @@
       "cp #{self.root / 'pesy-README.template.md'} #{ self.root / '_build' / 'default' / 'share' / 'template-repo' / 'pesy-README.template.md' }",
       "cp #{self.root / 'pesy-gitignore.template'} #{ self.install / 'share' /  'template-repo' / 'pesy-gitignore.template' }",
       "cp #{self.root / 'pesy-gitignore.template'} #{ self.root / '_build' / 'default' / 'share' /  'template-repo' / 'pesy-gitignore.template' }"
+    ],
+    "build": [
+      "refmterr dune build -p #{self.name}"
     ],
     "buildsInSource": "_build",
     "release": { "releasedBinaries": [ "Pesy.exe" ] }
