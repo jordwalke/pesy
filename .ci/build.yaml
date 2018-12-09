@@ -8,20 +8,12 @@ jobs:
   pool: ${{ parameters.pool }}
   steps:
   - ${{ if eq(parameters.sign, 'true') }}:
-    - script: 'npm install -g esy --unsafe-perm'
+    - script: 'npm install -g esy@next --unsafe-perm'
       displayName: 'Installing deps'
       workingDirectory: 're'
   - ${{ if eq(parameters.sign, 'false') }}:
-    - script: 'sudo npm install -g esy --unsafe-perm'
+    - script: 'sudo npm install -g esy@next --unsafe-perm'
       displayName: 'Installing deps'
-      workingDirectory: 're'
-  - ${{ if eq(parameters.sign, 'true') }}:
-    - script: 'npm install -g pesy --unsafe-perm'
-      displayName: 'Installing pesy for testing'
-      workingDirectory: 're'
-  - ${{ if eq(parameters.sign, 'false') }}:
-    - script: 'sudo npm install -g pesy --unsafe-perm'
-      displayName: 'Installing pesy for testing'
       workingDirectory: 're'
   - script: esy install
     displayName: 'Installing deps'
