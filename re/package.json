@@ -17,7 +17,8 @@
       "cp #{self.root / 'pesy-README.template.md'} #{ self.install / 'share' /  'template-repo' / 'pesy-README.template.md' }",
       "cp #{self.root / 'pesy-README.template.md'} #{ self.root / '_build' / 'default' / 'share' / 'template-repo' / 'pesy-README.template.md' }",
       "cp #{self.root / 'pesy-gitignore.template'} #{ self.install / 'share' /  'template-repo' / 'pesy-gitignore.template' }",
-      "cp #{self.root / 'pesy-gitignore.template'} #{ self.root / '_build' / 'default' / 'share' /  'template-repo' / 'pesy-gitignore.template' }"
+      "cp #{self.root / 'pesy-gitignore.template'} #{ self.root / '_build' / 'default' / 'share' /  'template-repo' / 'pesy-gitignore.template' }",
+      "dune install --prefix=#{self.install}"
     ],
     "build": [
       "refmterr dune build -p #{self.name}"
