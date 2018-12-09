@@ -1,4 +1,4 @@
-/* TODO: Exit status of the System commands are not handled propertly. Test failures are not reported properly. Needs work */
+/* TODO: Exit status of the System commands are not handled propertly. Test failures are not reported properly. Needs work. */
 
 let rimraf = s => {
   let _ = Bos.OS.Dir.delete(Fpath.v(s));
