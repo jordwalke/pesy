@@ -1,4 +1,4 @@
 (executable
 (name TestPesy)
 (public_name TestPesy.exe)
-(libraries  pesy.lib))
+(libraries  unix pesy.lib bos fpath))

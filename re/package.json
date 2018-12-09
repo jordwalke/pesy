@@ -47,7 +47,9 @@
     "@opam/yojson": "1.4.1",
     "ocaml": "~4.6.0",
     "pesy": "*",
-    "refmterr": "*"
+    "refmterr": "*",
+    "@opam/bos": "*",
+    "@opam/fpath": "*"
   },
-  "devDependencies": { "@esy-ocaml/merlin": "*" }
+    "devDependencies": { "@esy-ocaml/merlin": "*" }
 }
