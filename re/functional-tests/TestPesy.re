@@ -2,8 +2,8 @@
 
 let rimraf = s => {
   let _ = Bos.OS.Dir.delete(Fpath.v(s));
+  ();
 };
-
 
 let buffer_size = 8192;
 let buffer = Bytes.create(buffer_size);
@@ -25,7 +25,6 @@ let file_copy = (input_name, output_name) => {
   close(fd_out);
 };
 
-
 let tmpDir = Filename.get_temp_dir_name();
 let testProject = "test-project";
 let testProjectDir = Filename.concat(tmpDir, testProject);
@@ -34,17 +33,12 @@ module Path = {
   let (/) = Filename.concat;
 };
 
-let copyTemplate = tpl => {
+let copyTemplate = tpl =>
   file_copy(
-    Path.(
-         Sys.getcwd()
-          / tpl
-        )
-    ,
+    Path.(Sys.getcwd() / tpl),
     Path.(testProjectDir / "share" / "template-repo" / tpl),
+    /* print_endline("Copied " ++ tpl); */
   );
-  /* print_endline("Copied " ++ tpl); */
-};
 
 rimraf(testProjectDir);
 Sys.command("mkdir " ++ testProjectDir);
@@ -52,14 +46,7 @@ Sys.command("mkdir " ++ Path.(testProjectDir / "bin"));
 Sys.command("mkdir " ++ Path.(testProjectDir / "share"));
 Sys.command("mkdir " ++ Path.(testProjectDir / "share" / "template-repo"));
 file_copy(
-  Path.(
-       Sys.getcwd()
-       / "_build"
-       / "default"
-       / "executable"
-       / "Pesy.exe"
-     )
-,
+  Path.(Sys.getcwd() / "_build" / "default" / "executable" / "Pesy.exe"),
   Path.(testProjectDir / "bin" / "pesy.exe"),
 );
 copyTemplate("pesy-package.template.json");
@@ -81,26 +68,54 @@ Unix.putenv(
 Sys.command("pesy.exe");
 /* Sys.command("pesy.exe build"); */
 Sys.command("esy b dune build");
-let pid = try (Unix.create_process(Path.(Sys.getcwd() / "_build" / "default" / "executable" / "TestProjectApp.exe"), [||], Unix.stdin, Unix.stdout, Unix.stderr)) {
-  | Unix.Unix_error(e, _, _) => {
-      print_endline(Unix.error_message(e));
-      exit(-1);
-    }
-}
-let exitStatus = switch (Unix.waitpid([], pid)) {
+let pid =
+  try (
+    Unix.create_process(
+      Path.(
+        Sys.getcwd()
+        / "_build"
+        / "default"
+        / "executable"
+        / "TestProjectApp.exe"
+      ),
+      [||],
+      Unix.stdin,
+      Unix.stdout,
+      Unix.stderr,
+    )
+  ) {
+  | Unix.Unix_error(e, _, _) =>
+    print_endline(Unix.error_message(e));
+    exit(-1);
+  };
+let exitStatus =
+  switch (Unix.waitpid([], pid)) {
   | (_, WEXITED(c)) => c
   | (_, WSIGNALED(c)) => c
   | (_, WSTOPPED(c)) => c
   };
-  if (exitStatus != 0) {
-    print_endline("Test failed: Non zero exit when running TestProjectApp.exe");
-  }
-  let pid = Unix.create_process(Path.(Sys.getcwd() / "_build" / "default" / "test" / "TestTestProject.exe"), [||], Unix.stdin, Unix.stdout, Unix.stderr);
-let exitStatus = switch (Unix.waitpid([], pid)) {
+if (exitStatus != 0) {
+  print_endline("Test failed: Non zero exit when running TestProjectApp.exe");
+};
+let pid =
+  Unix.create_process(
+    Path.(
+      Sys.getcwd() / "_build" / "default" / "test" / "TestTestProject.exe"
+    ),
+    [||],
+    Unix.stdin,
+    Unix.stdout,
+    Unix.stderr,
+  );
+let exitStatus =
+  switch (Unix.waitpid([], pid)) {
   | (_, WEXITED(c)) => c
   | (_, WSIGNALED(c)) => c
   | (_, WSTOPPED(c)) => c
-  }; 
-  if (exitStatus != 0) {
-    print_endline("Test failed: Non zero exit when running TestTestProject.exe");
-  }
+  };
+
+if (exitStatus != 0) {
+  print_endline(
+    "Test failed: Non zero exit when running TestTestProject.exe",
+  );
+};

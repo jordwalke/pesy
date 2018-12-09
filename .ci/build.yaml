@@ -29,6 +29,11 @@ jobs:
   - script: esy build
     displayName: 'Building'
     workingDirectory: 're'
-  - script: esy x TestPesy.exe
-    displayName: 'Running tests'
-    workingDirectory: 're'
+  - ${{ if eq(parameters.sign, 'false') }}:
+    - script: esy x TestPesy.exe
+      displayName: 'Running tests'
+      workingDirectory: 're'
+  - ${{ if eq(parameters.sign, 'true') }}:
+    - script: .\_build\default\functional-tests\TestPesy.exe
+      displayName: 'Running tests'
+      workingDirectory: 're'
