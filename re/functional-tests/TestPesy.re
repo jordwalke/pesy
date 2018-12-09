@@ -41,6 +41,7 @@ let copyTemplate = tpl =>
   );
 
 rimraf(testProjectDir);
+/* TODO: not use system.command mkdir */
 Sys.command("mkdir " ++ testProjectDir);
 Sys.command("mkdir " ++ Path.(testProjectDir / "bin"));
 Sys.command("mkdir " ++ Path.(testProjectDir / "share"));
@@ -65,9 +66,15 @@ Unix.putenv(
   ++ Sys.getenv("PATH"),
 );
 
-Sys.command("pesy.exe");
-/* Sys.command("pesy.exe build"); */
-Sys.command("esy b dune build");
+if (Sys.command("pesy.exe") != 0) {
+  print_endline("Test failed: Non zero exit when running 'pesy build'");
+};
+
+/* TODO: Sys.command("pesy.exe build"); */
+if (Sys.command("esy b dune build") != 0) {
+  print_endline("Test failed: Non zero exit when running 'pesy build'");
+};
+
 let pid =
   try (
     Unix.create_process(
