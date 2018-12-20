@@ -43,11 +43,11 @@ any time you update the build config in the `package.json`.
 
 Once you've created a project, you normally only ever run `esy build` on the
 command line. If you update your `package.json` `buildDirs` field, you will
-need to run `esy pesy` which will udpate all the project build config based on
+need to run `esy pesy` which will update all the project build config based on
 your `package.json` file changes. Then, you just run `esy build` as usual. You
 only need to run `esy pesy` if you change your `package.json` file.
 
-(Hopefully this could be automatically done in the future so you only ever run
+(Hopefully, this could be automatically done in the future so you only ever run
 `esy build` as usual).
 
 
