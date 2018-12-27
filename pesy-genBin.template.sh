@@ -1,4 +1,4 @@
-BIN_DIR="${cur__root}/<DIR>"
+BIN_DIR="${cur__root}/<ORIG_DIR>"
 BIN_DUNE_FILE="${BIN_DIR}/dune"
 # FOR BINARY IN DIRECTORY <DIR>
 <DIR>_MAIN_MODULE="${<DIR>_MAIN_MODULE:-$DEFAULT_MAIN_MODULE_NAME}"
@@ -70,6 +70,12 @@ if [ -d "${BIN_DIR}" ]; then
   if [ ! -z "${<DIR>_OCAMLOPT_FLAGS}" ]; then
     BIN_DUNE_CONTENTS=$(printf "%s\\n %s\\n" "${BIN_DUNE_CONTENTS}" "  (ocamlopt_flags (${<DIR>_OCAMLOPT_FLAGS}))  ; From package.json ocamloptFlags field")
   fi
+  if [ ! -z "${<DIR>_MODES}" ]; then
+    BIN_DUNE_CONTENTS=$(printf "%s\\n %s\\n" "${BIN_DUNE_CONTENTS}" "  (modes (${<DIR>_MODES}))  ; From package.json modes field")
+  fi
+  if [ ! -z "${<DIR>_RAWBUILDCONFIG}" ]; then
+    BIN_DUNE_CONTENTS=$(printf "%s\\n %s\\n" "${BIN_DUNE_CONTENTS}" "  ${<DIR>_RAWBUILDCONFIG} ")
+  fi
   if [ ! -z "${<DIR>_PREPROCESS}" ]; then
     BIN_DUNE_CONTENTS=$(printf "%s\\n %s\\n" "${BIN_DUNE_CONTENTS}" "  (preprocess (${<DIR>_PREPROCESS}))  ; From package.json preprocess field")
   fi
@@ -81,15 +87,19 @@ if [ -d "${BIN_DIR}" ]; then
     BIN_DUNE_CONTENTS=$(printf "%s\\n%s\\n" "${BIN_DUNE_CONTENTS}" "(include_subdirs ${<DIR>_INCLUDESUBDIRS}) ;  From package.json includeSubdirs field")
   fi
 
+  if [ ! -z "${<DIR>_RAWBUILDCONFIGFOOTER}" ]; then
+    BIN_DUNE_CONTENTS=$(printf "%s\\n %s\\n" "${BIN_DUNE_CONTENTS}" "${<DIR>_RAWBUILDCONFIGFOOTER}")
+  fi
+
   if [ "${BIN_DUNE_EXISTING_CONTENTS}" == "${BIN_DUNE_CONTENTS}" ]; then
     true
   else
     notifyUser
     BUILD_STALE_PROBLEM="true"
     if [ "${MODE}" == "build" ]; then
-      printf "    □  Update <DIR>/dune build config\\n"
+      printf "    □  Update <ORIG_DIR>/dune build config\\n"
     else
-      printf "    %s☒%s  Update <DIR>/dune build config\\n" "${BOLD}${GREEN}" "${RESET}"
+      printf "    %s☒%s  Update <ORIG_DIR>/dune build config\\n" "${BOLD}${GREEN}" "${RESET}"
       printf "%s" "${BIN_DUNE_CONTENTS}" > "${BIN_DUNE_FILE}"
       mkdir -p "${BIN_DIR}"
     fi
@@ -98,9 +108,9 @@ else
   BUILD_STALE_PROBLEM="true"
   notifyUser
   if [ "${MODE}" == "build" ]; then
-    printf "    □  Generate missing the <DIR> directory described in package.json buildDirs\\n"
+    printf "    □  Generate missing the <ORIG_DIR> directory described in package.json buildDirs\\n"
   else
-    printf "    %s☒%s  Generate missing the <DIR> directory described in package.json buildDirs\\n" "${BOLD}${GREEN}" "${RESET}"
+    printf "    %s☒%s  Generate missing the <ORIG_DIR> directory described in package.json buildDirs\\n" "${BOLD}${GREEN}" "${RESET}"
     mkdir -p "${BIN_DIR}"
   fi
 fi

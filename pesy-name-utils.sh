@@ -3,10 +3,11 @@
 set -e
 set -u
 
+# Also removes /
 # https://stackoverflow.com/a/8952274
 uppers="ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 lowers="abcdefghijklmnopqrstuvwxyz"
-wordBoundaries="._-"
+wordBoundaries="._-/"
 upperCamelCasify(){ #usage: camelcasify "some_string-Here" -> "SomeStringHere"
   OUTPUT=""
   i=0

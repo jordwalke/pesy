@@ -1,7 +1,7 @@
 
 # Perform validation:
 
-LIB_DIR="${cur__root}/<DIR>"
+LIB_DIR="${cur__root}/<ORIG_DIR>"
 LIB_DUNE_FILE="${LIB_DIR}/dune"
 
 # TODO: Error if there are multiple libraries all using the default namespace.
@@ -11,9 +11,9 @@ else
   BUILD_STALE_PROBLEM="true"
   notifyUser
   if [ "${MODE}" == "build" ]; then
-    printf "    □  Your project is missing the <DIR> directory described in package.json buildDirs\\n"
+    printf "    □  Your project is missing the <ORIG_DIR> directory described in package.json buildDirs\\n"
   else
-    printf "    %s☒%s  Your project is missing the <DIR> directory described in package.json buildDirs\\n" "${BOLD}${GREEN}" "${RESET}"
+    printf "    %s☒%s  Your project is missing the <ORIG_DIR> directory described in package.json buildDirs\\n" "${BOLD}${GREEN}" "${RESET}"
     mkdir -p "${LIB_DIR}"
   fi
 fi
@@ -57,6 +57,18 @@ fi
 if [ ! -z "${<DIR>_OCAMLOPT_FLAGS}" ]; then
   LIB_DUNE_CONTENTS=$(printf "%s\\n %s\\n" "${LIB_DUNE_CONTENTS}" "  (ocamlopt_flags (${<DIR>_OCAMLOPT_FLAGS})) ; From package.json ocamloptFlags")
 fi
+if [ ! -z "${<DIR>_MODES}" ]; then
+  LIB_DUNE_CONTENTS=$(printf "%s\\n %s\\n" "${LIB_DUNE_CONTENTS}" "  (modes (${<DIR>_MODES}))  ; From package.json modes field")
+fi
+if [ ! -z "${<DIR>_IMPLEMENTS}" ]; then
+  LIB_DUNE_CONTENTS=$(printf "%s\\n %s\\n" "${LIB_DUNE_CONTENTS}" "  (implements ${<DIR>_IMPLEMENTS}) ; From package.json implements")
+fi
+if [ ! -z "${<DIR>_VIRTUALMODULES}" ]; then
+  LIB_DUNE_CONTENTS=$(printf "%s\\n %s\\n" "${LIB_DUNE_CONTENTS}" "  (virtual_modules ${<DIR>_VIRTUALMODULES}) ; From package.json virtualModules")
+fi
+if [ ! -z "${<DIR>_RAWBUILDCONFIG}" ]; then
+  LIB_DUNE_CONTENTS=$(printf "%s\\n %s\\n" "${LIB_DUNE_CONTENTS}" "  ${<DIR>_RAWBUILDCONFIG} ")
+fi
 if [ ! -z "${<DIR>_PREPROCESS}" ]; then
   LIB_DUNE_CONTENTS=$(printf "%s\\n %s\\n" "${LIB_DUNE_CONTENTS}" "  (preprocess (${<DIR>_PREPROCESS}))  ; From package.json preprocess field")
 fi
@@ -65,8 +77,15 @@ LIB_DUNE_CONTENTS=$(printf "%s\\n%s\\n" "${LIB_DUNE_CONTENTS}" ")")
 if [ ! -z "${<DIR>_IGNOREDSUBDIRS}" ]; then
   LIB_DUNE_CONTENTS=$(printf "%s\\n%s\\n" "${LIB_DUNE_CONTENTS}" "(ignored_subdirs (${<DIR>_IGNOREDSUBDIRS}))  ; From package.json ignoreSubdirs field")
 fi
+if [ ! -z "${<DIR>_WRAPPED}" ]; then
+  LIB_DUNE_CONTENTS=$(printf "%s\\n%s\\n" "${LIB_DUNE_CONTENTS}" "(include_subdirs ${<DIR>_WRAPPED})  ; From package.json wrapped field")
+fi
 if [ ! -z "${<DIR>_INCLUDESUBDIRS}" ]; then
   LIB_DUNE_CONTENTS=$(printf "%s\\n%s\\n" "${LIB_DUNE_CONTENTS}" "(include_subdirs ${<DIR>_INCLUDESUBDIRS})  ; From package.json includeSubdirs field")
+fi
+
+if [ ! -z "${<DIR>_RAWBUILDCONFIGFOOTER}" ]; then
+  LIB_DUNE_CONTENTS=$(printf "%s\\n %s\\n" "${LIB_DUNE_CONTENTS}" "${<DIR>_RAWBUILDCONFIGFOOTER}")
 fi
 
 if [ "${LIB_DUNE_EXISTING_CONTENTS}" == "${LIB_DUNE_CONTENTS}" ]; then
@@ -75,9 +94,9 @@ else
   notifyUser
   BUILD_STALE_PROBLEM="true"
   if [ "${MODE}" == "build" ]; then
-    printf "    □  Update <DIR>/dune build config\\n"
+    printf "    □  Update <ORIG_DIR>/dune build config\\n"
   else
-    printf "    %s☒%s  Update <DIR>/dune build config\\n" "${BOLD}${GREEN}" "${RESET}"
+    printf "    %s☒%s  Update <ORIG_DIR>/dune build config\\n" "${BOLD}${GREEN}" "${RESET}"
     printf "%s" "$LIB_DUNE_CONTENTS" > "${LIB_DUNE_FILE}"
   fi
 fi
