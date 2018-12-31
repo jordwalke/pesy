@@ -86,15 +86,21 @@ let r = Str.regexp;
 
 let exists = Sys.file_exists;
 
-/* let mkdirp = dirs => { */
-/*   let _ = */
-/*     Sys.command( */
-/*       "mkdir -p " ++ List.fold_left((acc, e) => Path.(acc / e), "", dirs), */
-/*     ); */
-/*   (); */
-/* }; */
+let mkdir = (~perms=?, p) => {
+  switch (perms) {
+  | Some(x) => Unix.mkdir(p, x)
+  | None => Unix.mkdir(p, 0o755)
+  }
+}
 
-let mkdirp = p => Sys.command("mkdir -p " ++ p);
+let mkdirp = p => {
+  let directory_created = try(Sys.is_directory(p)) {
+    | Sys_error(_) => false
+  };
+  if (!directory_created) {
+    mkdir(p);
+  }
+};
 
 let spf = Printf.sprintf;
 
