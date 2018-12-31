@@ -53,5 +53,5 @@
     "@opam/bos": "*",
     "@opam/fpath": "*"
   },
-    "devDependencies": { "@esy-ocaml/merlin": "*" }
+    "devDependencies": { "@opam/merlin": "*" }
 }
