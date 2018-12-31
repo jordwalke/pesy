@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "description": "My Project",
   "esy": {
-    "build": "pesy",
+    "build": "dune build -p #{self.name}",
     "release": {
       "releasedBinaries": [
         "<PACKAGE_NAME_UPPER_CAMEL>App.exe"
