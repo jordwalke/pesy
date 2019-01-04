@@ -34,7 +34,12 @@ LIB_DUNE_CONTENTS=$(printf "%s\\n %s" "${LIB_DUNE_CONTENTS}" "  (public_name <LI
 if [ ! -z "${<DIR>_REQUIRE}" ]; then
   LIB_DUNE_CONTENTS=$(printf "%s\\n %s\\n" "${LIB_DUNE_CONTENTS}" "  (libraries ${<DIR>_REQUIRE})")
 fi
-LIB_DUNE_CONTENTS=$(printf "%s\\n %s\\n" "${LIB_DUNE_CONTENTS}" "  (c_names ${<DIR>_C_NAMES})  ; From package.json cNames field")
+if [ ! -z "${<DIR>_WRAPPED}" ]; then
+  LIB_DUNE_CONTENTS=$(printf "%s\\n%s\\n" "${LIB_DUNE_CONTENTS}" "   (wrapped ${<DIR>_WRAPPED})  ; From package.json wrapped field")
+fi
+if [ ! -z "${<DIR>_C_NAMES}" ]; then
+  LIB_DUNE_CONTENTS=$(printf "%s\\n %s\\n" "${LIB_DUNE_CONTENTS}" "  (c_names ${<DIR>_C_NAMES})  ; From package.json cNames field")
+fi
 if [ -z "${<DIR>_JSOO_FLAGS}" ] && [ -z "${<DIR>_JSOO_FILES}" ]; then
   # No jsoo flags whatsoever
   true
@@ -76,9 +81,6 @@ LIB_DUNE_CONTENTS=$(printf "%s\\n%s\\n" "${LIB_DUNE_CONTENTS}" ")")
 
 if [ ! -z "${<DIR>_IGNOREDSUBDIRS}" ]; then
   LIB_DUNE_CONTENTS=$(printf "%s\\n%s\\n" "${LIB_DUNE_CONTENTS}" "(ignored_subdirs (${<DIR>_IGNOREDSUBDIRS}))  ; From package.json ignoreSubdirs field")
-fi
-if [ ! -z "${<DIR>_WRAPPED}" ]; then
-  LIB_DUNE_CONTENTS=$(printf "%s\\n%s\\n" "${LIB_DUNE_CONTENTS}" "(include_subdirs ${<DIR>_WRAPPED})  ; From package.json wrapped field")
 fi
 if [ ! -z "${<DIR>_INCLUDESUBDIRS}" ]; then
   LIB_DUNE_CONTENTS=$(printf "%s\\n%s\\n" "${LIB_DUNE_CONTENTS}" "(include_subdirs ${<DIR>_INCLUDESUBDIRS})  ; From package.json includeSubdirs field")

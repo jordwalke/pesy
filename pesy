@@ -208,7 +208,7 @@ OIFS=$IFS;
 
 
 # Initial pass through all names to set some defaults.
-# NOTICE THE QUOTE AROUND THE (.*) - that's because this is not an array.
+# NOTICE THE QUOTE AROUND THE (.*) - that's because this should be a string.
 PARSED=$("${PESY_DIR}/pesy-JSON.sh" < "${cur__root}/package.json")
 ALL_DIR_TO_NAME=$(printf "%s" "${PARSED}" |  sed -n 's;\["buildDirs","\([^"]*\)","name"\][[:space:]]*"\([^"]*\)";\1=\2;p')
 ALL_DIR_TO_NAME=$(printf "%s" "$ALL_DIR_TO_NAME" | tr -s '\n' '|')
@@ -276,7 +276,7 @@ for ((i=0; i<${#ALL_DIR_TO_INCLUDESUBDIRS_ARR[@]}; ++i)); do
   echo "${DIR}_INCLUDESUBDIRS=\"${INCLUDESUBDIRS}\"" >> "${GEN_EVERYTHING}"
 done
 
-# NOTICE THE QUOTE AROUND THE (.*) - that's because this is not an array.
+# NOTICE THE QUOTE AROUND THE (.*) - that's because this should be a string.
 ALL_DIR_TO_NAMESPACE=$(printf "%s" "${PARSED}" |  sed -n 's;\["buildDirs","\([^"]*\)","namespace"\][[:space:]]*"\(.*\)";\1=\2;p')
 ALL_DIR_TO_NAMESPACE=$(printf "%s" "$ALL_DIR_TO_NAMESPACE" | tr -s '\n' '|')
 IFS="|";
@@ -291,8 +291,8 @@ for ((i=0; i<${#ALL_DIR_TO_NAMESPACE_ARR[@]}; ++i)); do
   echo "${DIR}_NAMESPACE=\"${NAMESPACE}\"" >> "${GEN_EVERYTHING}"
 done
 
-# NOTICE THE QUOTE AROUND THE (.*) - that's because this is not an array.
-ALL_DIR_TO_WRAPPED=$(printf "%s" "${PARSED}" |  sed -n 's;\["buildDirs","\([^"]*\)","wrapped"\][[:space:]]*"\(.*\)";\1=\2;p')
+# NOTICE THE LACK OF QUOTE AROUND THE (.*) - that's because this should be a boolean.
+ALL_DIR_TO_WRAPPED=$(printf "%s" "${PARSED}" |  sed -n 's;\["buildDirs","\([^"]*\)","wrapped"\][[:space:]]*\(.*\);\1=\2;p')
 ALL_DIR_TO_WRAPPED=$(printf "%s" "$ALL_DIR_TO_WRAPPED" | tr -s '\n' '|')
 IFS="|";
 ALL_DIR_TO_WRAPPED_ARR=($ALL_DIR_TO_WRAPPED);
@@ -306,7 +306,7 @@ for ((i=0; i<${#ALL_DIR_TO_WRAPPED_ARR[@]}; ++i)); do
   echo "${DIR}_WRAPPED=\"${WRAPPED}\"" >> "${GEN_EVERYTHING}"
 done
 
-# NOTICE THE QUOTE AROUND THE (.*) - that's because this is not an array.
+# NOTICE THE QUOTE AROUND THE (.*) - that's because this should be a string.
 ALL_DIR_TO_MAIN=$(printf "%s" "${PARSED}" |  sed -n 's;\["buildDirs","\([^"]*\)","main"\][[:space:]]*"\(.*\)";\1=\2;p')
 ALL_DIR_TO_MAIN=$(printf "%s" "$ALL_DIR_TO_MAIN" | tr -s '\n' '|')
 IFS="|";
