@@ -48,6 +48,15 @@ let write = (file, str) => {
   close(fileChannel);
 };
 
+module NoLwt = {
+  open Printf;
+  let write = (file, str) => {
+    let oc = open_out(file);
+    fprintf(oc, "%s", str);
+    close_out(oc);
+  };
+};
+
 let readFile = file => {
   let buf = ref("");
   let breakOut = ref(false);
@@ -86,20 +95,20 @@ let r = Str.regexp;
 
 let exists = Sys.file_exists;
 
-let mkdir = (~perms=?, p) => {
+let mkdir = (~perms=?, p) =>
   switch (perms) {
   | Some(x) => Unix.mkdir(p, x)
   | None => Unix.mkdir(p, 0o755)
-  }
-}
+  };
 
 let mkdirp = p => {
-  let directory_created = try(Sys.is_directory(p)) {
+  let directory_created =
+    try (Sys.is_directory(p)) {
     | Sys_error(_) => false
-  };
+    };
   if (!directory_created) {
     mkdir(p);
-  }
+  };
 };
 
 let spf = Printf.sprintf;

@@ -7,19 +7,6 @@
     "buildsInSource": "_build",
     "release": { "releasedBinaries": [ "Pesy.exe" ] }
   },
-  "buildDirs": {
-    "test": {
-      "require": [ "pesy.lib" ],
-      "main": "TestPesy",
-      "name": "TestPesy.exe"
-    },
-    "library": { "name": "pesy.lib", "namespace": "Pesy" },
-    "executable": {
-      "require": [ "pesy.lib" ],
-      "main": "Pesy",
-      "name": "Pesy.exe"
-    }
-  },
   "dependencies": {
     "@esy-ocaml/reason": "*",
     "@opam/bos": "*",

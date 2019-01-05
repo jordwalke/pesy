@@ -23,11 +23,9 @@ let projectRoot =
     /**
      * This mean pesy is being run naked on the shell.
      * Either it was:
-     *    $ pesy
-     *    $ pesy build
      */
-    /** TODO prompt user for custom path */
-    Sys.getcwd()
+    print_endline("pesy-configure must be run in esy's env");
+    exit(0);
   };
 
 /* use readFileOpt to read previously computed directory path */
@@ -39,13 +37,9 @@ let mode =
     }
   );
 
-Lwt_main.run(
-  switch (mode) {
-  | UPDATE =>
-    let%lwt _ = PesyLib.bootstrapIfNecessary(projectRoot);
-    let packageJSONPath = Path.(projectRoot / "package.json");
-    let buildDirs = PesyLib.extractPesyConf(packageJSONPath);
-    PesyLib.generateBuildFiles(projectRoot, buildDirs);
-  | BUILD => PesyLib.build()
-  },
-);
+switch (mode) {
+| UPDATE =>
+  let packageJSONPath = Path.(projectRoot / "package.json");
+  PesyLib.PesyConf.gen(projectRoot, packageJSONPath);
+| BUILD => PesyLib.build()
+};

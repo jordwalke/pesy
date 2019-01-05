@@ -18,7 +18,7 @@ module PackageConf = {
   };
 };
 
-module PesyConf = {
+module Conf = {
   type t = {
     test: PackageConf.t,
     library: PackageConf.Library.t,
@@ -47,7 +47,9 @@ let getRequireList = json =>
   };
 let getMainStr = getMemberStr("main");
 
-let extractPesyConf = (p): PesyConf.t => {
+let extractConf = (p): Conf.t => {
+  /* let packageJSON = Yojson.Basic.from_file(path); /\* TODO: handle missing file *\/ */
+
   open Yojson.Basic.Util;
   let packageJSON = Yojson.Basic.from_file(p);
   let buildDirsJSON = getMemberJSON(packageJSON, "buildDirs");
@@ -211,7 +213,7 @@ let bootstrap = testMode =>
 
 let build = () => {
   let _ = Sys.command("dune build");
-  Lwt.return();
+  ();
 };
 
 let bootstrapIfNecessary = projectPath =>
@@ -337,7 +339,7 @@ let bootstrapIfNecessary = projectPath =>
     };
   };
 
-let generateBuildFiles = (projectRoot, pesyConf: PesyConf.t) => {
+let generateBuildFiles = (projectRoot, pesyConf: Conf.t) => {
   let testMainModule = pesyConf.test.main; /* TODO: Deal with mising .re */
   let testMainModuleName = pesyConf.test.main;
   let testBin = pesyConf.test.name;
@@ -616,3 +618,5 @@ let generateBuildFiles = (projectRoot, pesyConf: PesyConf.t) => {
     Lwt.return();
   };
 };
+
+module PesyConf = PesyConf;

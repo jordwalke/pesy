@@ -4,4 +4,4 @@
 (inline_tests (flags -verbose))
 (libraries str react lwt lambda-term pesy.utils sexplib yojson ppx_inline_test.runtime-lib)
 (preprocess (pps lwt_ppx  ppx_expect ppx_inline_test))
-(flags -w -33))
+(flags -w -33)) ;; TODO: needs attention. Was necessary for inline testing
