@@ -146,7 +146,7 @@ let toPesyConf = (projectPath: string, json: JSON.t): t => {
         {
           common: {
             name,
-            path: Path.(projectPath / dir / ""),
+            path: Path.(projectPath / dir),
             require,
           },
           pkgType: Executable({main: main}),
@@ -159,7 +159,7 @@ let toPesyConf = (projectPath: string, json: JSON.t): t => {
         {
           common: {
             name,
-            path: Path.(projectPath / dir / ""),
+            path: Path.(projectPath / dir),
             require,
           },
           pkgType: Library({namespace: namespace}),
@@ -201,7 +201,7 @@ let toPackages = (_prjPath, pkgs) =>
       let {name: pkgName, path, require} = pkg.common;
       switch (pkg.pkgType) {
       | Library({namespace}) =>
-        let name = Stanza.create("name", Stanza.createAtom(pkgName));
+        let name = Stanza.create("name", Stanza.createAtom(namespace));
         let public_name =
           Stanza.create("public_name", Stanza.createAtom(pkgName));
         let libraries =

@@ -33,9 +33,16 @@ module Path = {
   let (/) = Filename.concat;
 };
 
+let parent = Filename.dirname;
+
 let copyTemplate = tpl =>
   file_copy(
-    Path.(Sys.getcwd() / tpl),
+    Path.(
+      (Sys.executable_name |> parent |> parent)
+      / "share"
+      / "template-repo"
+      / tpl
+    ),
     Path.(testProjectDir / "share" / "template-repo" / tpl),
     /* print_endline("Copied " ++ tpl); */
   );
@@ -47,7 +54,7 @@ Sys.command("mkdir " ++ Path.(testProjectDir / "bin"));
 Sys.command("mkdir " ++ Path.(testProjectDir / "share"));
 Sys.command("mkdir " ++ Path.(testProjectDir / "share" / "template-repo"));
 file_copy(
-  Path.(Sys.getcwd() / "_build" / "default" / "bootstrapper" / "Pesy.exe"),
+  Path.(Sys.getcwd() / "_build" / "install" / "default" / "bin" / "Pesy.exe"),
   Path.(testProjectDir / "bin" / "pesy.exe"),
 );
 copyTemplate("pesy-package.template.json");

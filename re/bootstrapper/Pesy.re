@@ -1,5 +1,3 @@
-open PesyUtils;
-
 let userCommand =
   if (Array.length(Sys.argv) > 1) {
     Some(Sys.argv[1]);

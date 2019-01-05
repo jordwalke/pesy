@@ -112,7 +112,7 @@ let bootstrapIfNecessary = projectPath =>
         write(".gitignore", gitignore);
       };
 
-    let libKebab = kebab(packageLibName);
+    let libKebab = packageNameKebabSansScope;
     let duneProjectFile = Path.(projectPath / "dune-project");
     let%lwt _ =
       if (!exists(duneProjectFile)) {
