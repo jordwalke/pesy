@@ -1,87 +1,7 @@
 open PesyUtils;
 open Utils;
-
-exception InvalidEnvJSON(string);
-
-module PackageConf = {
-  type t = {
-    require: list(string),
-    main: string,
-    name: string,
-  };
-  module Library = {
-    type t = {
-      require: list(string),
-      name: string,
-      namespace: string,
-    };
-  };
-};
-
-module Conf = {
-  type t = {
-    test: PackageConf.t,
-    library: PackageConf.Library.t,
-    executable: PackageConf.t,
-  };
-};
-
-let getMemberJSON = (json, m) =>
-  try (Yojson.Basic.Util.(json |> member(m))) {
-  | _ => Yojson.Basic.from_string("{}") /* TODO: Fixme. Silent fallback */
-  };
-let getMemberStr = (m, json) =>
-  try (getMemberJSON(json, m) |> Yojson.Basic.Util.to_string) {
-  | _ => "" /* TODO: Fixme. Silent fallback */
-  };
-
-let getNameStr = getMemberStr("name");
-let getNamespaceStr = getMemberStr("namespace");
-let getRequireList = json =>
-  try (
-    Yojson.Basic.Util.(
-      json |> member("require") |> to_list |> List.map(to_string)
-    )
-  ) {
-  | _ => [] /* TODO: Fixme. Silent fallback */
-  };
-let getMainStr = getMemberStr("main");
-
-let extractConf = (p): Conf.t => {
-  /* let packageJSON = Yojson.Basic.from_file(path); /\* TODO: handle missing file *\/ */
-
-  open Yojson.Basic.Util;
-  let packageJSON = Yojson.Basic.from_file(p);
-  let buildDirsJSON = getMemberJSON(packageJSON, "buildDirs");
-  let fromBuildDirsJSON = getMemberJSON(buildDirsJSON);
-  let testJSON = fromBuildDirsJSON("test");
-  let libraryJSON = fromBuildDirsJSON("library");
-  let executableJSON = fromBuildDirsJSON("executable");
-  Yojson.Basic.Util.{
-    test: {
-      require: getRequireList(testJSON),
-      main: getMainStr(testJSON),
-      name: getNameStr(testJSON),
-    },
-    library: {
-      require: getRequireList(libraryJSON),
-      namespace: getNamespaceStr(libraryJSON),
-      name: getNameStr(libraryJSON),
-    },
-    executable: {
-      require: getRequireList(executableJSON),
-      main: getMainStr(executableJSON),
-      name: getNameStr(executableJSON),
-    },
-  };
-};
-
 module Mode = Mode;
-
-let build = () => {
-  let _ = Sys.command("dune build");
-  ();
-};
+module PesyConf = PesyConf;
 
 let bootstrapIfNecessary = projectPath =>
   if (!isEsyInstalled()) {
@@ -236,5 +156,3 @@ let generateBuildFiles = projectRoot => {
   let packageJSONPath = Path.(projectRoot / "package.json");
   Lwt.return(PesyConf.gen(projectRoot, packageJSONPath));
 };
-
-module PesyConf = PesyConf;

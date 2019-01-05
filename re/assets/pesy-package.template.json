@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "description": "My Project",
   "esy": {
-    "build": "pesy build",
+    "build": "dune build -p #{self.name}",
     "buildsInSource": "_build",
     "release": {
       "releasedBinaries": [

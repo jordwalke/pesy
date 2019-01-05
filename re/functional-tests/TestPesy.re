@@ -47,7 +47,7 @@ Sys.command("mkdir " ++ Path.(testProjectDir / "bin"));
 Sys.command("mkdir " ++ Path.(testProjectDir / "share"));
 Sys.command("mkdir " ++ Path.(testProjectDir / "share" / "template-repo"));
 file_copy(
-  Path.(Sys.getcwd() / "_build" / "default" / "executable" / "Pesy.exe"),
+  Path.(Sys.getcwd() / "_build" / "default" / "bootstrapper" / "Pesy.exe"),
   Path.(testProjectDir / "bin" / "pesy.exe"),
 );
 copyTemplate("pesy-package.template.json");
