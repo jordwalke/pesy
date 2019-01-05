@@ -32,6 +32,26 @@ let projectRoot =
 
 /* use readFileOpt to read previously computed directory path */
 let%lwt _ = PesyLib.bootstrapIfNecessary(projectRoot);
-let packageJSONPath = Path.(projectRoot / "package.json");
-let buildDirs = PesyLib.extractConf(packageJSONPath);
-Lwt_main.run(PesyLib.generateBuildFiles(projectRoot, buildDirs));
+let%lwt _ = PesyLib.generateBuildFiles(projectRoot);
+
+/*  @esy-ocaml/foo-package -> foo-package */
+let%lwt _ =
+  LTerm.printls(
+    LTerm_text.eval([LTerm_text.S("Installing deps and building...")]),
+  );
+
+let%lwt setupStatus = Lwt.return(Sys.command("esy i"));
+let%lwt _ =
+  if (setupStatus != 0) {
+    LTerm.printls(LTerm_text.eval([LTerm_text.S("esy install failed!")]));
+  } else {
+    Lwt.return();
+  };
+
+let%lwt setupStatus = Lwt.return(Sys.command("esy b"));
+let%lwt _ =
+  if (setupStatus != 0) {
+    LTerm.printls(LTerm_text.eval([LTerm_text.S("esy install failed!")]));
+  } else {
+    Lwt.return();
+  };

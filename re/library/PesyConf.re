@@ -279,5 +279,57 @@ let toPackages = (_prjPath, pkgs) =>
 let gen = (prjPath, pkgPath) => {
   let json = JSON.fromFile(pkgPath);
   let packages = toPesyConf(prjPath, json);
-  toPackages(prjPath, packages);
+  toPackages(prjPath, packages); /* TODO: Could return added, updated, deleted files i.e. packages updated */
 };
+
+/* let printAsciiTree = pesyConf => { */
+
+/*   let%lwt _ = */
+/*     LTerm.printls( */
+/*       LTerm_text.of_string( */
+/*         renderAsciiTree( */
+/*           "test", */
+/*           spf("name:    %s", testMainModuleName), */
+/*           spf("main:    %s", testMainModule), */
+/*           spf( */
+/*             "require: %s", */
+/*             List.fold_left((acc, e) => acc ++ " " ++ e, "", testRequire), */
+/*           ), */
+/*           false, */
+/*         ), */
+/*       ), */
+/*     ); */
+
+/*   let%lwt _ = */
+/*     LTerm.printls( */
+/*       LTerm_text.of_string( */
+/*         renderAsciiTree( */
+/*           "library", */
+/*           spf("name:      %s", libName), */
+/*           spf("namespace: %s", libNamespace), */
+/*           spf( */
+/*             "require:   %s", */
+/*             List.fold_left((acc, e) => acc ++ " " ++ e, "", libRequire), */
+/*           ), */
+/*           false, */
+/*         ), */
+/*       ), */
+/*     ); */
+
+/*   let%lwt _ = */
+/*     LTerm.printls( */
+/*       LTerm_text.of_string( */
+/*         renderAsciiTree( */
+/*           "executable", */
+/*           spf("name:      %s", binName), */
+/*           spf("main:      %s", binMain), */
+/*           spf( */
+/*             "require:   %s", */
+/*             List.fold_left((acc, e) => acc ++ " " ++ e, "", binRequire), */
+/*           ), */
+/*           true, */
+/*         ), */
+/*       ), */
+/*     ); */
+
+/* } */
