@@ -7,28 +7,8 @@ let userCommand =
     None;
   };
 
-let projectRoot =
-  switch (Sys.getenv_opt("cur__root")) {
-  | Some(curRoot) =>
-    /**
-     * This means the user ran pesy in an esy environment.
-     * Either as
-     * 1. esy pesy
-     * 2. esy b pesy
-     * 3. esy pesy build
-     * 4. esy b pesy build
-     */
-    curRoot
-  | None =>
-    /**
-     * This mean pesy is being run naked on the shell.
-     * Either it was:
-     *    $ pesy
-     *    $ pesy build
-     */
-    /** TODO prompt user for custom path */
-    Sys.getcwd()
-  };
+/* TODO: prompt user for their choice */
+let projectRoot = Sys.getcwd();
 
 /* use readFileOpt to read previously computed directory path */
 let%lwt _ = PesyLib.bootstrapIfNecessary(projectRoot);
@@ -51,7 +31,7 @@ let%lwt _ =
 let%lwt setupStatus = Lwt.return(Sys.command("esy b"));
 let%lwt _ =
   if (setupStatus != 0) {
-    LTerm.printls(LTerm_text.eval([LTerm_text.S("esy install failed!")]));
+    LTerm.printls(LTerm_text.eval([LTerm_text.S("esy build failed!")]));
   } else {
     Lwt.return();
   };

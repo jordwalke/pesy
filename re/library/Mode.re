@@ -1,5 +1,5 @@
 module EsyEnv = {
   type t' =
-    | UPDATE
-    | BUILD;
+    | UPDATE;
+  /* | BUILD; */
 };

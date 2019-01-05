@@ -32,8 +32,7 @@ let projectRoot =
 let mode =
   PesyLib.Mode.EsyEnv.(
     switch (userCommand) {
-    | Some(command) => command == "build" ? BUILD : UPDATE
-    | None => UPDATE
+    | _ => UPDATE
     }
   );
 
@@ -41,5 +40,4 @@ switch (mode) {
 | UPDATE =>
   let packageJSONPath = Path.(projectRoot / "package.json");
   PesyLib.PesyConf.gen(projectRoot, packageJSONPath);
-| BUILD => PesyLib.build()
 };
