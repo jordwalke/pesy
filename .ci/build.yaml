@@ -22,10 +22,10 @@ jobs:
     displayName: 'Building'
     workingDirectory: 're'
   - ${{ if eq(parameters.sign, 'false') }}:
-    - script: ./_build/install/default/bin/TestPesy.exe
+    - script: esy x TestPesy.exe
       displayName: 'Running tests'
       workingDirectory: 're'
   - ${{ if eq(parameters.sign, 'true') }}:
-    - script: .\_build\install\default\bin\TestPesy.exe
+    - script: esy x TestPesy.exe
       displayName: 'Running tests'
       workingDirectory: 're'
