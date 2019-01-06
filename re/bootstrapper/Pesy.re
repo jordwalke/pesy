@@ -18,6 +18,7 @@ let%lwt _ =
     LTerm_text.eval([LTerm_text.S("Installing deps and building...")]),
   );
 
+print_endline("Running `esy install`");
 let%lwt setupStatus = Lwt.return(Sys.command("esy i"));
 let%lwt _ =
   if (setupStatus != 0) {
@@ -26,6 +27,7 @@ let%lwt _ =
     Lwt.return();
   };
 
+print_endline("Running `esy build`");
 let%lwt setupStatus = Lwt.return(Sys.command("esy b"));
 let%lwt _ =
   if (setupStatus != 0) {

@@ -1,12 +1,27 @@
-/* TODO: Exit status of the System commands are not handled propertly. Test failures are not reported properly. Needs work. */
-
-let rimraf = s => {
-  let _ = Bos.OS.Dir.delete(Fpath.v(s));
-  ();
-};
+let rimraf = s =>
+  switch (Bos.OS.Dir.delete(~recurse=true, Fpath.v(s))) {
+  | Ok () => ()
+  | _ => Printf.fprintf(stdout, "Warning: Could not delete %s\n", s)
+  };
 
 let buffer_size = 8192;
 let buffer = Bytes.create(buffer_size);
+
+let command_output = command => {
+  let c = Bos.Cmd.v(command);
+  switch (Bos.OS.Cmd.(run_out(c) |> out_string)) {
+  | Ok((output, _return_code)) => output
+  | _ =>
+    Printf.fprintf(stderr, "`%s` failed.", command);
+    exit(-1);
+  };
+};
+
+let mkdir = (~perms=?, p) =>
+  switch (perms) {
+  | Some(x) => Unix.mkdir(p, x)
+  | None => Unix.mkdir(p, 0o755)
+  };
 
 let file_copy = (input_name, output_name) => {
   open Unix;
@@ -25,111 +40,44 @@ let file_copy = (input_name, output_name) => {
   close(fd_out);
 };
 
-let tmpDir = Filename.get_temp_dir_name();
-let testProject = "test-project";
-let testProjectDir = Filename.concat(tmpDir, testProject);
-
 module Path = {
   let (/) = Filename.concat;
 };
 
 let parent = Filename.dirname;
 
-let copyTemplate = tpl =>
-  file_copy(
-    Path.(
-      (Sys.executable_name |> parent |> parent)
-      / "share"
-      / "template-repo"
-      / tpl
-    ),
-    Path.(testProjectDir / "share" / "template-repo" / tpl),
-    /* print_endline("Copied " ++ tpl); */
-  );
+let tmpDir = Filename.get_temp_dir_name();
+let testProject = "test-project";
+let testProjectDir = Filename.concat(tmpDir, testProject);
+let pesyBinPath = Path.((Sys.executable_name |> parent) / "Pesy.exe");
 
-rimraf(testProjectDir);
-/* TODO: not use system.command mkdir */
-Sys.command("mkdir " ++ testProjectDir);
-Sys.command("mkdir " ++ Path.(testProjectDir / "bin"));
-Sys.command("mkdir " ++ Path.(testProjectDir / "share"));
-Sys.command("mkdir " ++ Path.(testProjectDir / "share" / "template-repo"));
-file_copy(
-  Path.(Sys.getcwd() / "_build" / "install" / "default" / "bin" / "Pesy.exe"),
-  Path.(testProjectDir / "bin" / "pesy.exe"),
-);
-copyTemplate("pesy-package.template.json");
-copyTemplate("pesy-App.template.re");
-copyTemplate("pesy-Test.template.re");
-copyTemplate("pesy-Util.template.re");
-copyTemplate("pesy-README.template.md");
-copyTemplate("pesy-gitignore.template");
-
+rimraf(testProjectDir); /* So that we can run it stateless locally */
+mkdir(testProjectDir);
 Sys.chdir(testProjectDir);
 
-Unix.putenv(
-  "PATH",
-  Path.(testProjectDir / "bin")
-  ++ (Sys.unix ? ":" : ";")
-  ++ Sys.getenv("PATH"),
-);
-
-if (Sys.command("pesy.exe") != 0) {
-  print_endline("Test failed: Non zero exit when running 'pesy build'");
-};
-
-/* TODO: Sys.command("pesy.exe build"); */
-if (Sys.command("esy b dune build") != 0) {
-  print_endline("Test failed: Non zero exit when running 'pesy build'");
-};
-
-let pid =
-  try (
-    Unix.create_process(
-      Path.(
-        Sys.getcwd()
-        / "_build"
-        / "default"
-        / "executable"
-        / "TestProjectApp.exe"
-      ),
-      [||],
-      Unix.stdin,
-      Unix.stdout,
-      Unix.stderr,
-    )
-  ) {
-  | Unix.Unix_error(e, _, _) =>
-    print_endline(Unix.error_message(e));
-    exit(-1);
-  };
-let exitStatus =
-  switch (Unix.waitpid([], pid)) {
-  | (_, WEXITED(c)) => c
-  | (_, WSIGNALED(c)) => c
-  | (_, WSTOPPED(c)) => c
-  };
-if (exitStatus != 0) {
-  print_endline("Test failed: Non zero exit when running TestProjectApp.exe");
-};
-let pid =
-  Unix.create_process(
-    Path.(
-      Sys.getcwd() / "_build" / "default" / "test" / "TestTestProject.exe"
-    ),
-    [||],
-    Unix.stdin,
-    Unix.stdout,
-    Unix.stderr,
+if (Sys.command(pesyBinPath) != 0) {
+  Printf.fprintf(
+    stderr,
+    "Test failed: Non zero exit when running bootstrapper",
   );
-let exitStatus =
-  switch (Unix.waitpid([], pid)) {
-  | (_, WEXITED(c)) => c
-  | (_, WSIGNALED(c)) => c
-  | (_, WSTOPPED(c)) => c
-  };
+  exit(-1);
+};
+
+let exitStatus = Sys.command("esy x TestProjectApp.exe");
 
 if (exitStatus != 0) {
-  print_endline(
+  Printf.fprintf(
+    stderr,
+    "Test failed: Non zero exit when running TestProjectApp.exe",
+  );
+  exit(-1);
+};
+
+let exitStatus = Sys.command("esy x TestTestProject.exe");
+if (exitStatus != 0) {
+  Printf.fprintf(
+    stderr,
     "Test failed: Non zero exit when running TestTestProject.exe",
   );
+  exit(-1);
 };

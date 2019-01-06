@@ -24,7 +24,6 @@ let kebab = str => {
     k;
   };
 };
-/* TODO write inline unit tests */
 
 let getCurrentDirName = () => Filename.basename(Sys.getenv("PWD"));
 
