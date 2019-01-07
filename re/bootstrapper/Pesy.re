@@ -1,3 +1,5 @@
+open Printf;
+
 let userCommand =
   if (Array.length(Sys.argv) > 1) {
     Some(Sys.argv[1]);
@@ -9,29 +11,20 @@ let userCommand =
 let projectRoot = Sys.getcwd();
 
 /* use readFileOpt to read previously computed directory path */
-let%lwt _ = PesyLib.bootstrapIfNecessary(projectRoot);
-let%lwt _ = PesyLib.generateBuildFiles(projectRoot);
+PesyLib.bootstrapIfNecessary(projectRoot);
+PesyLib.generateBuildFiles(projectRoot);
 
 /*  @esy-ocaml/foo-package -> foo-package */
-let%lwt _ =
-  LTerm.printls(
-    LTerm_text.eval([LTerm_text.S("Installing deps and building...")]),
-  );
+print_endline("Installing deps and building...");
 
 print_endline("Running `esy install`");
-let%lwt setupStatus = Lwt.return(Sys.command("esy i"));
-let%lwt _ =
-  if (setupStatus != 0) {
-    LTerm.printls(LTerm_text.eval([LTerm_text.S("esy install failed!")]));
-  } else {
-    Lwt.return();
-  };
+let setupStatus = Sys.command("esy i");
+if (setupStatus != 0) {
+  fprintf(stderr, "esy install failed!");
+};
 
 print_endline("Running `esy build`");
-let%lwt setupStatus = Lwt.return(Sys.command("esy b"));
-let%lwt _ =
-  if (setupStatus != 0) {
-    LTerm.printls(LTerm_text.eval([LTerm_text.S("esy build failed!")]));
-  } else {
-    Lwt.return();
-  };
+let setupStatus = Sys.command("esy b");
+if (setupStatus != 0) {
+  fprintf(stderr, "esy build failed!");
+};

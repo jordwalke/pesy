@@ -5,16 +5,18 @@
   "esy": {
     "build": [ "refmterr dune build -p #{self.name}" ],
     "buildsInSource": "_build",
-    "release": { "releasedBinaries": [ "Pesy.exe" ] }
+    "release": {
+      "bin": [ "Pesy.exe" ],
+      "includePackages": [
+        "root"
+      ]
+    }
   },
   "dependencies": {
     "@esy-ocaml/reason": "*",
     "@opam/bos": "*",
     "@opam/dune": "*",
     "@opam/fpath": "*",
-    "@opam/lambda-term": "1.13",
-    "@opam/lwt": "4.1.0",
-    "@opam/lwt_ppx": "1.2.1",
     "@opam/ppx_expect": "v0.11.1",
     "@opam/ppx_inline_test": "v0.11.0",
     "@opam/sexplib": "v0.11.0",

@@ -40,13 +40,6 @@ let upperCamelCasify = kebab => {
 let removeScope = kebab =>
   Str.global_replace(Str.regexp("[^\\/]*/"), "", kebab);
 
-let write = (file, str) => {
-  open Lwt_io;
-  let%lwt fileChannel = open_file(Output, file);
-  let%lwt _ = write_line(fileChannel, str);
-  close(fileChannel);
-};
-
 module NoLwt = {
   open Printf;
   let write = (file, str) => {

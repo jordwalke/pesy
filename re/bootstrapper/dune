@@ -1,5 +1,4 @@
 (executable
 (name Pesy)
 (public_name Pesy.exe)
-(libraries pesy.lib pesy.utils)
-(preprocess (pps lwt_ppx)))
+(libraries pesy.lib pesy.utils))
