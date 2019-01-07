@@ -49,7 +49,10 @@ let parent = Filename.dirname;
 let tmpDir = Filename.get_temp_dir_name();
 let testProject = "test-project";
 let testProjectDir = Filename.concat(tmpDir, testProject);
-let pesyBinPath = Path.((Sys.executable_name |> parent) / "Pesy.exe");
+let pesyBinPath =
+  Path.(
+    testProjectDir / "_build" / "install" / "default" / "bin" / "Pesy.exe"
+  );
 
 rimraf(testProjectDir); /* So that we can run it stateless locally */
 mkdir(testProjectDir);
