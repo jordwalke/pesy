@@ -1,7 +1,7 @@
 {
   "name": "pesy",
   "version": "0.0.0",
-  "description": "My Project",
+  "description": "Pesy.",
   "esy": {
     "build": [ "refmterr dune build -p #{self.name}" ],
     "buildsInSource": "_build",
