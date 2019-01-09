@@ -1,3 +1,5 @@
+open Printf;
+
 let rimraf = s =>
   switch (Bos.OS.Dir.delete(~recurse=true, Fpath.v(s))) {
   | Ok () => ()
@@ -7,13 +9,18 @@ let rimraf = s =>
 let buffer_size = 8192;
 let buffer = Bytes.create(buffer_size);
 
-let command_output = command => {
-  let c = Bos.Cmd.v(command);
-  switch (Bos.OS.Cmd.(run_out(c) |> out_string)) {
-  | Ok((output, _return_code)) => output
-  | _ =>
-    Printf.fprintf(stderr, "`%s` failed.", command);
-    exit(-1);
+let runCommandWithEnv = (command, args) => {
+  let attach =
+    Unix.create_process_env(
+      command,
+      Array.append([|command|], args),
+      Unix.environment(),
+    );
+  let pid = attach(Unix.stdin, Unix.stdout, Unix.stderr);
+  switch (Unix.waitpid([], pid)) {
+  | (_, WEXITED(c)) => c
+  | (_, WSIGNALED(c)) => c
+  | (_, WSTOPPED(c)) => c
   };
 };
 
@@ -51,11 +58,68 @@ let testProject = "test-project";
 let testProjectDir = Filename.concat(tmpDir, testProject);
 let pesyBinPath = "pesy";
 
+let esyCommand =
+  Sys.unix ?
+    "esy" :
+    {
+      let pathVars =
+        Array.to_list(Unix.environment())
+        |> List.map(e =>
+             switch (Str.split(Str.regexp("="), e)) {
+             | [k, v, ...rest] => Some((k, v))
+             | _ => None
+             }
+           )
+        |> List.filter(
+             fun
+             | None => false
+             | _ => true,
+           )
+        |> List.filter(e =>
+             switch (e) {
+             | Some((k, _)) => String.lowercase_ascii(k) == "path"
+             | _ => false
+             }
+           )
+        |> List.map(
+             fun
+             | Some(x) => x
+             | None => ("", "") /* Why not filter_map? */
+           );
+
+      let v =
+        List.fold_right(
+          (e, acc) => {
+            let (_, v) = e;
+            acc ++ (Sys.unix ? ":" : ";") ++ v;
+          },
+          pathVars,
+          "",
+        );
+
+      Unix.putenv("PATH", v);
+
+      let paths = Str.split(Str.regexp(Sys.unix ? ":" : ";"), v);
+      List.iter(print_endline, paths);
+      let npmPaths =
+        List.filter(
+          path => Sys.file_exists(Filename.concat(path, "esy.cmd")),
+          paths,
+        );
+      switch (npmPaths) {
+      | [] =>
+        fprintf(stderr, "No npm bin path found");
+        exit(-1);
+      | [h, ..._] => Filename.concat(h, "esy.cmd")
+      };
+    };
+
 rimraf(testProjectDir); /* So that we can run it stateless locally */
 mkdir(testProjectDir);
 Sys.chdir(testProjectDir);
 
-if (Sys.command(pesyBinPath) != 0) {
+let exitStatus = runCommandWithEnv(pesyBinPath, [||]);
+if (exitStatus != 0) {
   Printf.fprintf(
     stderr,
     "Test failed: Non zero exit when running bootstrapper",
@@ -63,21 +127,26 @@ if (Sys.command(pesyBinPath) != 0) {
   exit(-1);
 };
 
-let exitStatus = Sys.command("esy x TestProjectApp.exe");
+let exitStatus =
+  runCommandWithEnv(esyCommand, [|"x", "TestProjectApp.exe"|]);
 
 if (exitStatus != 0) {
   Printf.fprintf(
     stderr,
-    "Test failed: Non zero exit when running TestProjectApp.exe",
+    "Test failed: Non zero exit when running TestProjectApp.exe\n Code: %d",
+    exitStatus,
   );
   exit(-1);
 };
 
-let exitStatus = Sys.command("esy x TestTestProject.exe");
+let exitStatus =
+  runCommandWithEnv(esyCommand, [|"x", "TestTestProject.exe"|]);
+
 if (exitStatus != 0) {
   Printf.fprintf(
     stderr,
-    "Test failed: Non zero exit when running TestTestProject.exe",
+    "Test failed: Non zero exit when running TestTestProject.exe\n Code: %d\n",
+    exitStatus,
   );
   exit(-1);
 };

@@ -144,3 +144,18 @@ let readFileOpt = f =>
 /*   }; */
 /*   let get = (cache: CacheInternal.t, key: string) => {}; */
 /* }; */
+
+let runCommandWithEnv = (command, args) => {
+  let attach =
+    Unix.create_process_env(
+      command,
+      Array.append([|command|], args),
+      Unix.environment(),
+    );
+  let pid = attach(Unix.stdin, Unix.stdout, Unix.stderr);
+  switch (Unix.waitpid([], pid)) {
+  | (_, WEXITED(c)) => c
+  | (_, WSIGNALED(c)) => c
+  | (_, WSTOPPED(c)) => c
+  };
+};
