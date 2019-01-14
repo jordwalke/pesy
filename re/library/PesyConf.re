@@ -2,16 +2,60 @@ open Printf;
 open PesyUtils;
 open PesyUtils.NoLwt;
 
+exception NullJSONValue(unit);
+module Library: {
+  module Mode: {
+    exception InvalidLibraryMode(unit);
+    type t;
+    let ofString: string => t;
+    let toString: t => string;
+  };
+  type t = {
+    namespace: string,
+    modes: option(list(Mode.t)),
+  };
+} = {
+  module Mode = {
+    exception InvalidLibraryMode(unit);
+    type t =
+      | Native
+      | Byte
+      | Best;
+    let ofString =
+      fun
+      | "best" => Best
+      | "native" => Native
+      | "byte" => Byte
+      | _ => raise(InvalidLibraryMode());
+    let toString =
+      fun
+      | Best => "best"
+      | Native => "native"
+      | Byte => "byte";
+  };
+  type t = {
+    namespace: string,
+    modes: option(list(Mode.t)),
+  };
+};
+
+module Executable = {
+  type m =
+    | Native
+    | Byte
+    | Best;
+  type t = {main: string};
+};
+
 type common = {
   path: string,
   name: string,
   require: list(string),
 };
-type executable = {main: string};
-type library = {namespace: string};
 type pkgType =
-  | Executable(executable)
-  | Library(library);
+  | ExecutablePackage(Executable.t)
+  | LibraryPackage(Library.t);
+
 type package = {
   common,
   pkgType,
@@ -32,7 +76,12 @@ let getSuffix = name => {
   | [suffix, ...r] => suffix
   };
 };
+
+/* */
+/*  Inline ppx is supported too. */
 /* let%test "getSuffix(): must return suffix" = getSuffix("foo.lib") == "lib"; */
+/* */
+
 let%expect_test _ = {
   print_endline(getSuffix("foo.lib"));
   %expect
@@ -40,6 +89,7 @@ let%expect_test _ = {
      lib
    |};
 };
+
 let%expect_test _ = {
   print_endline(getSuffix("foo.bar.lib"));
   %expect
@@ -58,7 +108,7 @@ let%expect_test _ = {
   %expect
   {|
      Must throw GenericException
-     |};
+  |};
 };
 
 module FieldTypes = {
@@ -79,6 +129,7 @@ module FieldTypes = {
 
 module JSON: {
   type t;
+  let ofString: string => t;
   let fromFile: string => t;
   let member: (t, string) => t;
   let toKeyValuePairs: t => list((string, t));
@@ -89,6 +140,7 @@ module JSON: {
   type t = json;
   exception InvalidJSONValue(string);
   exception MissingJSONMember(string);
+  let ofString = jstr => from_string(jstr);
   let fromFile = path => from_file(path);
   let member = (j, m) =>
     try (Util.member(m, j)) {
@@ -106,11 +158,12 @@ module JSON: {
     switch (json) {
     | `String(s) => FieldTypes.String(s)
     | `List(jl) => FieldTypes.List(List.map(j => toValue(j), jl))
+    | `Null => raise(NullJSONValue())
     | _ =>
       raise(
         InvalidJSONValue(
           sprintf(
-            "Value must be either list of string. Found %s",
+            "Value must be either string or list of string. Found %s",
             to_string(json),
           ),
         ),
@@ -149,20 +202,33 @@ let toPesyConf = (projectPath: string, json: JSON.t): t => {
             path: Path.(projectPath / dir),
             require,
           },
-          pkgType: Executable({main: main}),
+          pkgType: ExecutablePackage({main: main}),
         };
       | _ =>
         let namespace =
           JSON.member(conf, "namespace")
           |> JSON.toValue
           |> FieldTypes.toString;
+        let libraryModes =
+          try (
+            Some(
+              JSON.member(conf, "modes")
+              |> JSON.toValue
+              |> FieldTypes.toList
+              |> List.map(FieldTypes.toString)
+              |> List.map(Library.Mode.ofString),
+            )
+          ) {
+          | NullJSONValue () => None
+          | e => raise(e)
+          };
         {
           common: {
             name,
             path: Path.(projectPath / dir),
             require,
           },
-          pkgType: Library({namespace: namespace}),
+          pkgType: LibraryPackage({namespace, modes: libraryModes}),
         };
       };
     },
@@ -196,11 +262,11 @@ module DuneFile: {let toString: list(Stanza.t) => string;} = {
     );
 };
 let toPackages = (_prjPath, pkgs) =>
-  List.iter(
+  List.map(
     pkg => {
-      let {name: pkgName, path, require} = pkg.common;
+      let {name: pkgName, require, path} = pkg.common;
       switch (pkg.pkgType) {
-      | Library({namespace}) =>
+      | LibraryPackage({namespace, modes: modesP}) =>
         let name = Stanza.create("name", Stanza.createAtom(namespace));
         let public_name =
           Stanza.create("public_name", Stanza.createAtom(pkgName));
@@ -216,27 +282,32 @@ let toPackages = (_prjPath, pkgs) =>
             )
           };
 
+        let modesD =
+          switch (modesP) {
+          | None => None
+          | Some(l) =>
+            Some(
+              Stanza.createExpression([
+                Stanza.createAtom("modes"),
+                ...List.map(
+                     m => m |> Library.Mode.toString |> Stanza.createAtom,
+                     l,
+                   ),
+              ]),
+            )
+          };
+
+        let mandatoryExpressions = [name, public_name];
+        let optionalExpressions = [libraries, modesD];
+
         let library =
-          Stanza.createExpression(
-            [Stanza.createAtom("library"), name, public_name]
-            @ (
-              switch (libraries) {
-              | None => []
-              | Some(x) => [x]
-              }
-            ),
-          );
+          Stanza.createExpression([
+            Stanza.createAtom("library"),
+            ...mandatoryExpressions @ filterNone(optionalExpressions),
+          ]);
 
-        printf(
-          "Wrote (%s) \n %s\n",
-          Path.(path / "dune"),
-          DuneFile.toString([library]),
-        );
-
-        mkdirp(path);
-        write(Path.(path / "dune"), DuneFile.toString([library]));
-
-      | Executable({main}) =>
+        (path, DuneFile.toString([library]));
+      | ExecutablePackage({main}) =>
         let name = Stanza.create("name", Stanza.createAtom(main));
         let public_name =
           Stanza.create("public_name", Stanza.createAtom(pkgName));
@@ -263,14 +334,7 @@ let toPackages = (_prjPath, pkgs) =>
             ),
           );
 
-        printf(
-          "Wrote (%s) \n %s\n",
-          Path.(path / "dune"),
-          DuneFile.toString([executable]),
-        );
-
-        mkdirp(path);
-        write(Path.(path / "dune"), DuneFile.toString([executable]));
+        (path, DuneFile.toString([executable]));
       };
     },
     pkgs,
@@ -278,12 +342,87 @@ let toPackages = (_prjPath, pkgs) =>
 
 let gen = (prjPath, pkgPath) => {
   let json = JSON.fromFile(pkgPath);
-  let packages = toPesyConf(prjPath, json);
-  toPackages(prjPath, packages); /* TODO: Could return added, updated, deleted files i.e. packages updated */
+  let pesyPackages = toPesyConf(prjPath, json);
+  let dunePackages = toPackages(prjPath, pesyPackages); /* TODO: Could return added, updated, deleted files i.e. packages updated so that the main exe could log nicely */
+  List.iter(
+    dpkg => {
+      let (path, duneFile) = dpkg;
+      printf("Wrote (%s) \n %s\n", Path.(path / "dune"), duneFile);
+      mkdirp(path);
+      write(Path.(path / "dune"), duneFile);
+    },
+    dunePackages,
+  );
+};
+
+let%expect_test _ = {
+  let json =
+    JSON.ofString(
+      {|
+  {
+    "buildDirs": {
+      "test": {
+        "require": ["foo"],
+        "main": "Bar",
+        "name": "Bar.exe"
+      }
+    }
+  }
+       |},
+    );
+  let pesyPackages = toPesyConf("", json);
+  let dunePackages = toPackages("", pesyPackages);
+  List.iter(
+    print_endline,
+    List.map(
+      p => {
+        let (_, d) = p;
+        d;
+      },
+      dunePackages,
+    ),
+  );
+  %expect
+  {|
+     (executable (name Bar) (public_name Bar.exe) (libraries foo))
+   |};
+};
+
+let%expect_test _ = {
+  let json =
+    JSON.ofString(
+      {|
+  {
+    "buildDirs": {
+      "testlib": {
+        "require": ["foo"],
+        "namespace": "Foo",
+        "name": "bar.lib",
+       "modes": ["best"]
+      }
+    }
+  }
+       |},
+    );
+  let pesyPackages = toPesyConf("", json);
+  let dunePackages = toPackages("", pesyPackages);
+  List.iter(
+    print_endline,
+    List.map(
+      p => {
+        let (_, d) = p;
+        d;
+      },
+      dunePackages,
+    ),
+  );
+  %expect
+  {|
+     (library (name Foo) (public_name bar.lib) (libraries foo) (modes best))
+   |};
 };
 
 /* let printAsciiTree = pesyConf => { */
-
 /*   let%lwt _ = */
 /*     LTerm.printls( */
 /*       LTerm_text.of_string( */
@@ -331,5 +470,4 @@ let gen = (prjPath, pkgPath) => {
 /*         ), */
 /*       ), */
 /*     ); */
-
 /* } */
