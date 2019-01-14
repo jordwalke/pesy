@@ -13,6 +13,7 @@ module Library: {
   type t = {
     namespace: string,
     modes: option(list(Mode.t)),
+    cNames: option(list(string)),
   };
 } = {
   module Mode = {
@@ -36,6 +37,7 @@ module Library: {
   type t = {
     namespace: string,
     modes: option(list(Mode.t)),
+    cNames: option(list(string)),
   };
 };
 
@@ -127,6 +129,7 @@ module FieldTypes = {
       raise(ConversionException("Expected list. Actual string"));
 };
 
+/* TODO: Making parsing more lenient? Eg. allow string where single element list is valid */
 module JSON: {
   type t;
   let ofString: string => t;
@@ -222,13 +225,26 @@ let toPesyConf = (projectPath: string, json: JSON.t): t => {
           | NullJSONValue () => None
           | e => raise(e)
           };
+        let cStubs =
+          try (
+            Some(
+              JSON.member(conf, "cNames")
+              |> JSON.toValue
+              |> FieldTypes.toList
+              |> List.map(FieldTypes.toString),
+            )
+          ) {
+          | NullJSONValue () => None
+          | e => raise(e)
+          };
         {
           common: {
             name,
             path: Path.(projectPath / dir),
             require,
           },
-          pkgType: LibraryPackage({namespace, modes: libraryModes}),
+          pkgType:
+            LibraryPackage({namespace, modes: libraryModes, cNames: cStubs}),
         };
       };
     },
@@ -266,7 +282,7 @@ let toPackages = (_prjPath, pkgs) =>
     pkg => {
       let {name: pkgName, require, path} = pkg.common;
       switch (pkg.pkgType) {
-      | LibraryPackage({namespace, modes: modesP}) =>
+      | LibraryPackage({namespace, modes: modesP, cNames: cNamesP}) =>
         let name = Stanza.create("name", Stanza.createAtom(namespace));
         let public_name =
           Stanza.create("public_name", Stanza.createAtom(pkgName));
@@ -297,8 +313,20 @@ let toPackages = (_prjPath, pkgs) =>
             )
           };
 
+        let cNamesD =
+          switch (cNamesP) {
+          | None => None
+          | Some(l) =>
+            Some(
+              Stanza.createExpression([
+                Stanza.createAtom("c_names"),
+                ...List.map(Stanza.createAtom, l),
+              ]),
+            )
+          };
+
         let mandatoryExpressions = [name, public_name];
-        let optionalExpressions = [libraries, modesD];
+        let optionalExpressions = [libraries, modesD, cNamesD];
 
         let library =
           Stanza.createExpression([
@@ -355,9 +383,23 @@ let gen = (prjPath, pkgPath) => {
   );
 };
 
+/* TODO: Figure better test setup */
+let testToPackages = jsonStr => {
+  let json = JSON.ofString(jsonStr);
+  let pesyPackages = toPesyConf("", json);
+  let dunePackages = toPackages("", pesyPackages);
+  List.map(
+    p => {
+      let (_, d) = p;
+      d;
+    },
+    dunePackages,
+  );
+};
+
 let%expect_test _ = {
-  let json =
-    JSON.ofString(
+  let duneFiles =
+    testToPackages(
       {|
   {
     "buildDirs": {
@@ -370,18 +412,7 @@ let%expect_test _ = {
   }
        |},
     );
-  let pesyPackages = toPesyConf("", json);
-  let dunePackages = toPackages("", pesyPackages);
-  List.iter(
-    print_endline,
-    List.map(
-      p => {
-        let (_, d) = p;
-        d;
-      },
-      dunePackages,
-    ),
-  );
+  List.iter(print_endline, duneFiles);
   %expect
   {|
      (executable (name Bar) (public_name Bar.exe) (libraries foo))
@@ -389,8 +420,8 @@ let%expect_test _ = {
 };
 
 let%expect_test _ = {
-  let json =
-    JSON.ofString(
+  let duneFiles =
+    testToPackages(
       {|
   {
     "buildDirs": {
@@ -404,21 +435,33 @@ let%expect_test _ = {
   }
        |},
     );
-  let pesyPackages = toPesyConf("", json);
-  let dunePackages = toPackages("", pesyPackages);
-  List.iter(
-    print_endline,
-    List.map(
-      p => {
-        let (_, d) = p;
-        d;
-      },
-      dunePackages,
-    ),
-  );
+  List.iter(print_endline, duneFiles);
   %expect
   {|
      (library (name Foo) (public_name bar.lib) (libraries foo) (modes best))
+   |};
+};
+
+let%expect_test _ = {
+  let duneFiles =
+    testToPackages(
+      {|
+  {
+    "buildDirs": {
+      "testlib": {
+        "require": ["foo"],
+        "namespace": "Foo",
+        "name": "bar.lib",
+        "cNames": ["stubs"]
+      }
+    }
+  }
+       |},
+    );
+  List.iter(print_endline, duneFiles);
+  %expect
+  {|
+     (library (name Foo) (public_name bar.lib) (libraries foo) (c_names stubs))
    |};
 };
 
