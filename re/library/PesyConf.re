@@ -47,7 +47,9 @@ module Library: {
       string,
       option(list(Mode.t)),
       option(list(string)),
-      option(list(string))
+      option(list(string)),
+      option(list(string)),
+      option(bool)
     ) =>
     t;
   let toDuneStanza: (common, t) => (string, string);
@@ -75,12 +77,16 @@ module Library: {
     modes: option(list(Mode.t)),
     cNames: option(list(string)),
     virtualModules: option(list(string)),
+    implements: option(list(string)),
+    wrapped: option(bool),
   };
-  let create = (namespace, modes, cNames, virtualModules) => {
+  let create = (namespace, modes, cNames, virtualModules, implements, wrapped) => {
     namespace,
     modes,
     cNames,
     virtualModules,
+    implements,
+    wrapped,
   };
   let toDuneStanza = (common, lib) => {
     let {name: pkgName, require, path} = common;
@@ -89,6 +95,8 @@ module Library: {
       modes: modesP,
       cNames: cNamesP,
       virtualModules: virtualModulesP,
+      implements: implementsP,
+      wrapped: wrappedP,
     } = lib;
     let name = Stanza.create("name", Stanza.createAtom(namespace));
     let public_name =
@@ -141,8 +149,39 @@ module Library: {
         )
       };
 
+    let implementsD =
+      switch (implementsP) {
+      | None => None
+      | Some(l) =>
+        Some(
+          Stanza.createExpression([
+            Stanza.createAtom("implements"),
+            ...List.map(Stanza.createAtom, l),
+          ]),
+        )
+      };
+
+    let wrappedD =
+      switch (wrappedP) {
+      | None => None
+      | Some(w) =>
+        Some(
+          Stanza.createExpression([
+            Stanza.createAtom("wrapped"),
+            Stanza.createAtom(string_of_bool(w)),
+          ]),
+        )
+      };
+
     let mandatoryExpressions = [name, public_name];
-    let optionalExpressions = [libraries, modesD, cNamesD, virtualModulesD];
+    let optionalExpressions = [
+      libraries,
+      modesD,
+      cNamesD,
+      virtualModulesD,
+      implementsD,
+      wrappedD,
+    ];
 
     let library =
       Stanza.createExpression([
@@ -223,16 +262,39 @@ let%expect_test _ = {
 
 module FieldTypes = {
   type t =
+    | Bool(bool)
     | String(string)
     | List(list(t));
   exception ConversionException(string);
+  let toBool =
+    fun
+    | Bool(b) => b
+    | String(s) =>
+      raise(
+        ConversionException(
+          sprintf("Expected string. Actual string (%s)", s),
+        ),
+      )
+    | List(l) => raise(ConversionException("Expected string. Actual list"));
   let toString =
     fun
     | String(s) => s
+    | Bool(b) =>
+      raise(
+        ConversionException(
+          sprintf("Expected string. Actual bool (%s)", string_of_bool(b)),
+        ),
+      )
     | List(_) => raise(ConversionException("Expected string. Actual list"));
   let toList =
     fun
     | List(l) => l
+    | Bool(b) =>
+      raise(
+        ConversionException(
+          sprintf("Expected list. Actual bool (%s)", string_of_bool(b)),
+        ),
+      )
     | String(_) =>
       raise(ConversionException("Expected list. Actual string"));
 };
@@ -267,6 +329,7 @@ module JSON: {
     };
   let rec toValue = (json: json) =>
     switch (json) {
+    | `Bool(b) => FieldTypes.Bool(b)
     | `String(s) => FieldTypes.String(s)
     | `List(jl) => FieldTypes.List(List.map(j => toValue(j), jl))
     | `Null => raise(NullJSONValue())
@@ -274,7 +337,7 @@ module JSON: {
       raise(
         InvalidJSONValue(
           sprintf(
-            "Value must be either string or list of string. Found %s",
+            "Value must be either string, bool or list of string. Found %s",
             to_string(json),
           ),
         ),
@@ -357,6 +420,29 @@ let toPesyConf = (projectPath: string, json: JSON.t): t => {
           | NullJSONValue () => None
           | e => raise(e)
           };
+        let implements =
+          try (
+            Some(
+              JSON.member(conf, "implements")
+              |> JSON.toValue
+              |> FieldTypes.toList
+              |> List.map(FieldTypes.toString),
+            )
+          ) {
+          | NullJSONValue () => None
+          | e => raise(e)
+          };
+        let wrapped =
+          try (
+            Some(
+              JSON.member(conf, "wrapped")
+              |> JSON.toValue
+              |> FieldTypes.toBool,
+            )
+          ) {
+          | NullJSONValue () => None
+          | e => raise(e)
+          };
         {
           common: {
             name,
@@ -365,7 +451,14 @@ let toPesyConf = (projectPath: string, json: JSON.t): t => {
           },
           pkgType:
             LibraryPackage(
-              Library.create(namespace, libraryModes, cStubs, virtualModules),
+              Library.create(
+                namespace,
+                libraryModes,
+                cStubs,
+                virtualModules,
+                implements,
+                wrapped,
+              ),
             ),
         };
       };
@@ -529,6 +622,50 @@ let%expect_test _ = {
   %expect
   {|
      (library (name Foo) (public_name bar.lib) (virtual_modules foo))
+   |};
+};
+
+let%expect_test _ = {
+  let duneFiles =
+    testToPackages(
+      {|
+  {
+    "buildDirs": {
+      "testlib": {
+        "namespace": "Foo",
+        "name": "bar.lib",
+        "implements": ["foo"]
+      }
+    }
+  }
+       |},
+    );
+  List.iter(print_endline, duneFiles);
+  %expect
+  {|
+     (library (name Foo) (public_name bar.lib) (implements foo))
+   |};
+};
+
+let%expect_test _ = {
+  let duneFiles =
+    testToPackages(
+      {|
+  {
+    "buildDirs": {
+      "testlib": {
+        "namespace": "Foo",
+        "name": "bar.lib",
+        "wrapped": false
+      }
+    }
+  }
+       |},
+    );
+  List.iter(print_endline, duneFiles);
+  %expect
+  {|
+     (library (name Foo) (public_name bar.lib) (wrapped false))
    |};
 };
 
