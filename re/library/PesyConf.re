@@ -3,11 +3,6 @@ open PesyUtils;
 open PesyUtils.NoLwt;
 
 exception NullJSONValue(unit);
-type common = {
-  path: string,
-  name: string,
-  require: list(string),
-};
 module Stanza: {
   type t;
   let create: (string, t) => t;
@@ -34,6 +29,46 @@ module DuneFile: {let toString: list(Stanza.t) => string;} = {
     );
 };
 
+module Common: {
+  type t;
+  let toDuneStanzas: t => (Stanza.t, option(Stanza.t));
+  let getPath: t => string;
+  let create: (string, string, list(string)) => t;
+} = {
+  type t = {
+    path: string,
+    name: string,
+    require: list(string),
+    /* flags: option(list(string)), */
+  };
+  let create = (name, path, require) => {name, path, require};
+  type ds = {
+    public_name: Stanza.t,
+    libraries: option(Stanza.t),
+  };
+  let toDuneStanzas = c => {
+    let {name, require, _} = c;
+    (
+      /* public_name: */ Stanza.create(
+        "public_name",
+        Stanza.createAtom(name),
+      ),
+      /*libraries:*/
+      switch (require) {
+      | [] => None
+      | libs =>
+        Some(
+          Stanza.createExpression([
+            Stanza.createAtom("libraries"),
+            ...List.map(r => Stanza.createAtom(r), libs),
+          ]),
+        )
+      },
+    );
+  };
+  let getPath = c => c.path;
+};
+
 module Library: {
   module Mode: {
     exception InvalidLibraryMode(unit);
@@ -52,7 +87,7 @@ module Library: {
       option(bool)
     ) =>
     t;
-  let toDuneStanza: (common, t) => (string, string);
+  let toDuneStanza: (Common.t, t) => (string, string);
 } = {
   module Mode = {
     exception InvalidLibraryMode(unit);
@@ -89,7 +124,7 @@ module Library: {
     wrapped,
   };
   let toDuneStanza = (common, lib) => {
-    let {name: pkgName, require, path} = common;
+    /* let {name: pkgName, require, path} = common */
     let {
       namespace,
       modes: modesP,
@@ -98,20 +133,9 @@ module Library: {
       implements: implementsP,
       wrapped: wrappedP,
     } = lib;
+    let (public_name, libraries) = Common.toDuneStanzas(common);
+    let path = Common.getPath(common);
     let name = Stanza.create("name", Stanza.createAtom(namespace));
-    let public_name =
-      Stanza.create("public_name", Stanza.createAtom(pkgName));
-    let libraries =
-      switch (require) {
-      | [] => None
-      | libs =>
-        Some(
-          Stanza.createExpression([
-            Stanza.createAtom("libraries"),
-            ...List.map(r => Stanza.createAtom(r), libs),
-          ]),
-        )
-      };
 
     let modesD =
       switch (modesP) {
@@ -201,7 +225,7 @@ module Executable: {
     let toList: t => list(string);
   };
   let create: (string, option(Mode.t)) => t;
-  let toDuneStanza: (common, t) => (string, string);
+  let toDuneStanza: (Common.t, t) => (string, string);
 } = {
   module Mode = {
     exception InvalidCompilationMode(unit);
@@ -282,24 +306,26 @@ module Executable: {
     modes: option(Mode.t),
   };
   let create = (main, modes) => {main, modes};
-  let toDuneStanza = (common, e) => {
-    let {name: pkgName, require, path} = common;
+  let toDuneStanza = (common: Common.t, e) => {
+    /* let {name: pkgName, require, path} = common; */
     let {main, modes: modesP} = e;
+    let (public_name, libraries) = Common.toDuneStanzas(common);
+    let path = Common.getPath(common);
     let name = Stanza.create("name", Stanza.createAtom(main));
-    let public_name =
-      Stanza.create("public_name", Stanza.createAtom(pkgName));
+    /* let public_name = */
+    /*   Stanza.create("public_name", Stanza.createAtom(pkgName)); */
 
-    let libraries =
-      switch (require) {
-      | [] => None
-      | libs =>
-        Some(
-          Stanza.createExpression([
-            Stanza.createAtom("libraries"),
-            ...List.map(r => Stanza.createAtom(r), libs),
-          ]),
-        )
-      };
+    /* let libraries = */
+    /*   switch (require) { */
+    /*   | [] => None */
+    /*   | libs => */
+    /*     Some( */
+    /*       Stanza.createExpression([ */
+    /*         Stanza.createAtom("libraries"), */
+    /*         ...List.map(r => Stanza.createAtom(r), libs), */
+    /*       ]), */
+    /*     ) */
+    /*   }; */
 
     let modesD =
       switch (modesP) {
@@ -331,7 +357,7 @@ type pkgType =
   | LibraryPackage(Library.t);
 
 type package = {
-  common,
+  common: Common.t,
   pkgType,
 };
 
@@ -510,11 +536,7 @@ let toPesyConf = (projectPath: string, json: JSON.t): t => {
           | e => raise(e)
           };
         {
-          common: {
-            name,
-            path: Path.(projectPath / dir),
-            require,
-          },
+          common: Common.create(name, Path.(projectPath / dir), require),
           pkgType: ExecutablePackage(Executable.create(main, modes)),
         };
       | _ =>
@@ -583,11 +605,7 @@ let toPesyConf = (projectPath: string, json: JSON.t): t => {
           | e => raise(e)
           };
         {
-          common: {
-            name,
-            path: Path.(projectPath / dir),
-            require,
-          },
+          common: Common.create(name, Path.(projectPath / dir), require),
           pkgType:
             LibraryPackage(
               Library.create(
@@ -800,6 +818,29 @@ let%expect_test _ = {
      (executable (name Foo) (public_name bar.exe) (modes best c))
    |};
 };
+
+/* let%expect_test _ = { */
+/*   let duneFiles = */
+/*     testToPackages( */
+/*       {| */
+         /*   { */
+         /*     "buildDirs": { */
+         /*       "testlib": { */
+         /*         "require": ["foo"], */
+         /*         "namespace": "Foo", */
+         /*         "name": "bar.lib", */
+         /*         "flags": ["-w", "-33+9"] */
+         /*       } */
+         /*     } */
+         /*   } */
+         /*        |}, */
+/*     ); */
+/*   List.iter(print_endline, duneFiles); */
+/*   %expect */
+/*   {| */
+     /*      (library (name Foo) (public_name bar.lib) (libraries foo) (flags -w -33+9)) */
+     /*    |}; */
+/* }; */
 
 /* let printAsciiTree = pesyConf => { */
 /*   let%lwt _ = */
