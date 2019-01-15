@@ -193,12 +193,137 @@ module Library: {
   };
 };
 
-module Executable = {
-  type m =
-    | Native
-    | Byte
-    | Best;
-  type t = {main: string};
+module Executable: {
+  type t;
+  module Mode: {
+    type t;
+    let ofList: list(string) => t;
+    let toList: t => list(string);
+  };
+  let create: (string, option(Mode.t)) => t;
+  let toDuneStanza: (common, t) => (string, string);
+} = {
+  module Mode = {
+    exception InvalidCompilationMode(unit);
+    exception InvalidBinaryKind(unit);
+    module Compilation: {
+      type t;
+      let toString: t => string;
+      let ofString: string => t;
+    } = {
+      type t =
+        | Byte
+        | Native
+        | Best;
+
+      let toString =
+        fun
+        | Byte => "byte"
+        | Native => "native"
+        | Best => "best";
+
+      let ofString =
+        fun
+        | "byte" => Byte
+        | "native" => Native
+        | "best" => Best
+        | _ => raise(InvalidCompilationMode());
+    };
+
+    module BinaryKind: {
+      type t;
+      let toString: t => string;
+      let ofString: string => t;
+    } = {
+      type t =
+        | C
+        | Exe
+        | Object
+        | Shared_object;
+
+      let toString =
+        fun
+        | C => "c"
+        | Exe => "exe"
+        | Object => "object"
+        | Shared_object => "shared_object";
+
+      let ofString =
+        fun
+        | "c" => C
+        | "exe" => Exe
+        | "object" => Object
+        | "shared_object" => Shared_object
+        | _ => raise(InvalidBinaryKind());
+    };
+
+    type t = (Compilation.t, BinaryKind.t);
+    exception InvalidExecutableMode(string);
+    let ofList = parts =>
+      switch (parts) {
+      | [c, b] => (Compilation.ofString(c), BinaryKind.ofString(b))
+      | _ =>
+        raise(
+          InvalidExecutableMode(
+            sprintf(
+              "Invalid executable mode: expected of the form (<compilation mode>, <binary_kind>). Got %s",
+              List.fold_left((a, e) => sprintf("%s %s", a, e), "", parts),
+            ),
+          ),
+        )
+      };
+    let toList = m => {
+      let (c, b) = m;
+      [Compilation.toString(c), BinaryKind.toString(b)];
+    };
+  };
+  type t = {
+    main: string,
+    modes: option(Mode.t),
+  };
+  let create = (main, modes) => {main, modes};
+  let toDuneStanza = (common, e) => {
+    let {name: pkgName, require, path} = common;
+    let {main, modes: modesP} = e;
+    let name = Stanza.create("name", Stanza.createAtom(main));
+    let public_name =
+      Stanza.create("public_name", Stanza.createAtom(pkgName));
+
+    let libraries =
+      switch (require) {
+      | [] => None
+      | libs =>
+        Some(
+          Stanza.createExpression([
+            Stanza.createAtom("libraries"),
+            ...List.map(r => Stanza.createAtom(r), libs),
+          ]),
+        )
+      };
+
+    let modesD =
+      switch (modesP) {
+      | None => None
+      | Some(m) =>
+        Some(
+          Stanza.createExpression([
+            Stanza.createAtom("modes"),
+            ...m |> Mode.toList |> List.map(Stanza.createAtom),
+          ]),
+        )
+      };
+
+    let mandatoryExpressions = [name, public_name];
+    let optionalExpressions = [libraries, modesD];
+
+    let executable =
+      Stanza.createExpression([
+        Stanza.createAtom("executable"),
+        ...mandatoryExpressions @ filterNone(optionalExpressions),
+      ]);
+
+    (path, DuneFile.toString([executable]));
+  };
 };
 
 type pkgType =
@@ -370,13 +495,27 @@ let toPesyConf = (projectPath: string, json: JSON.t): t => {
       | "exe" =>
         let main =
           JSON.member(conf, "main") |> JSON.toValue |> FieldTypes.toString;
+        let modes =
+          try (
+            Some(
+              Executable.Mode.ofList(
+                JSON.member(conf, "modes")
+                |> JSON.toValue
+                |> FieldTypes.toList
+                |> List.map(a => a |> FieldTypes.toString),
+              ),
+            )
+          ) {
+          | NullJSONValue () => None
+          | e => raise(e)
+          };
         {
           common: {
             name,
             path: Path.(projectPath / dir),
             require,
           },
-          pkgType: ExecutablePackage({main: main}),
+          pkgType: ExecutablePackage(Executable.create(main, modes)),
         };
       | _ =>
         let namespace =
@@ -469,40 +608,11 @@ let toPesyConf = (projectPath: string, json: JSON.t): t => {
 
 let toPackages = (_prjPath, pkgs) =>
   List.map(
-    pkg => {
-      let {name: pkgName, require, path} = pkg.common;
+    pkg =>
       switch (pkg.pkgType) {
       | LibraryPackage(l) => Library.toDuneStanza(pkg.common, l)
-      | ExecutablePackage({main}) =>
-        let name = Stanza.create("name", Stanza.createAtom(main));
-        let public_name =
-          Stanza.create("public_name", Stanza.createAtom(pkgName));
-        let libraries =
-          switch (require) {
-          | [] => None
-          | libs =>
-            Some(
-              Stanza.createExpression([
-                Stanza.createAtom("libraries"),
-                ...List.map(r => Stanza.createAtom(r), libs),
-              ]),
-            )
-          };
-
-        let executable =
-          Stanza.createExpression(
-            [Stanza.createAtom("executable"), name, public_name]
-            @ (
-              switch (libraries) {
-              | None => []
-              | Some(x) => [x]
-              }
-            ),
-          );
-
-        (path, DuneFile.toString([executable]));
-      };
-    },
+      | ExecutablePackage(e) => Executable.toDuneStanza(pkg.common, e)
+      },
     pkgs,
   );
 
@@ -666,6 +776,28 @@ let%expect_test _ = {
   %expect
   {|
      (library (name Foo) (public_name bar.lib) (wrapped false))
+   |};
+};
+
+let%expect_test _ = {
+  let duneFiles =
+    testToPackages(
+      {|
+  {
+    "buildDirs": {
+      "testlib": {
+        "main": "Foo",
+        "name": "bar.exe",
+        "modes": ["best", "c"]
+      }
+    }
+  }
+       |},
+    );
+  List.iter(print_endline, duneFiles);
+  %expect
+  {|
+     (executable (name Foo) (public_name bar.exe) (modes best c))
    |};
 };
 
