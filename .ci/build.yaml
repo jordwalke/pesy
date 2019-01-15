@@ -1,10 +1,10 @@
 parameters:
-  name: ''
+  host: ''
   pool: ''
   sign: false
 
 jobs:
-- job: ${{ parameters.name }}
+- job: ${{ parameters.host }}
   pool: ${{ parameters.pool }}
   steps:
   - ${{ if eq(parameters.sign, 'true') }}:
@@ -27,12 +27,16 @@ jobs:
   - script: npm pack
     displayName: 'NPM packing...'
     workingDirectory: 're/_release'
-  - ${{ if eq(parameters.sign, 'true') }}:
-    - script: 'npm install -g .\pesy-0.0.0.tgz --unsafe-perm'
+  - ${{ if eq(parameters.host, 'Windows') }}:
+    - script: 'npm install -g .\pesy-0.0.0.tgz --unsafe-perm=true'
       displayName: 'npm link... for tests'
       workingDirectory: 're/_release'
-  - ${{ if eq(parameters.sign, 'false') }}:
-    - script: 'sudo npm install -g ./pesy-0.0.0.tgz  --unsafe-perm'
+  - ${{ if eq(parameters.host, 'Linux') }}:
+    - script: 'sudo npm install -g ./pesy-0.0.0.tgz --unsafe-perm=true'
+      displayName: 'npm link... for tests'
+      workingDirectory: 're/_release'
+  - ${{ if eq(parameters.host, 'macOS') }}:
+    - script: 'sudo npm install -g ./pesy-0.0.0.tgz --unsafe-perm=false'
       displayName: 'npm link... for tests'
       workingDirectory: 're/_release'
   - ${{ if eq(parameters.sign, 'false') }}:
