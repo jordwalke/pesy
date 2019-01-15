@@ -3,6 +3,37 @@ open PesyUtils;
 open PesyUtils.NoLwt;
 
 exception NullJSONValue(unit);
+type common = {
+  path: string,
+  name: string,
+  require: list(string),
+};
+module Stanza: {
+  type t;
+  let create: (string, t) => t;
+  let createAtom: string => t;
+  let createExpression: list(t) => t;
+  let toSexp: t => Sexplib.Sexp.t;
+} = {
+  open Sexplib.Sexp;
+  type t = Sexplib.Sexp.t;
+  let createAtom = a => Atom(a);
+  let create = (stanza: string, expression) =>
+    List([Atom(stanza), expression]);
+  let createExpression = atoms => List(atoms);
+  let toSexp = x => x;
+};
+
+module DuneFile: {let toString: list(Stanza.t) => string;} = {
+  open Sexplib.Sexp;
+  let toString = (stanzas: list(Stanza.t)) =>
+    List.fold_right(
+      (s, acc) => to_string_hum(~indent=4, Stanza.toSexp(s)) ++ acc,
+      stanzas,
+      "",
+    );
+};
+
 module Library: {
   module Mode: {
     exception InvalidLibraryMode(unit);
@@ -10,11 +41,16 @@ module Library: {
     let ofString: string => t;
     let toString: t => string;
   };
-  type t = {
-    namespace: string,
-    modes: option(list(Mode.t)),
-    cNames: option(list(string)),
-  };
+  type t;
+  let create:
+    (
+      string,
+      option(list(Mode.t)),
+      option(list(string)),
+      option(list(string))
+    ) =>
+    t;
+  let toDuneStanza: (common, t) => (string, string);
 } = {
   module Mode = {
     exception InvalidLibraryMode(unit);
@@ -38,6 +74,83 @@ module Library: {
     namespace: string,
     modes: option(list(Mode.t)),
     cNames: option(list(string)),
+    virtualModules: option(list(string)),
+  };
+  let create = (namespace, modes, cNames, virtualModules) => {
+    namespace,
+    modes,
+    cNames,
+    virtualModules,
+  };
+  let toDuneStanza = (common, lib) => {
+    let {name: pkgName, require, path} = common;
+    let {
+      namespace,
+      modes: modesP,
+      cNames: cNamesP,
+      virtualModules: virtualModulesP,
+    } = lib;
+    let name = Stanza.create("name", Stanza.createAtom(namespace));
+    let public_name =
+      Stanza.create("public_name", Stanza.createAtom(pkgName));
+    let libraries =
+      switch (require) {
+      | [] => None
+      | libs =>
+        Some(
+          Stanza.createExpression([
+            Stanza.createAtom("libraries"),
+            ...List.map(r => Stanza.createAtom(r), libs),
+          ]),
+        )
+      };
+
+    let modesD =
+      switch (modesP) {
+      | None => None
+      | Some(l) =>
+        Some(
+          Stanza.createExpression([
+            Stanza.createAtom("modes"),
+            ...List.map(m => m |> Mode.toString |> Stanza.createAtom, l),
+          ]),
+        )
+      };
+
+    let cNamesD =
+      switch (cNamesP) {
+      | None => None
+      | Some(l) =>
+        Some(
+          Stanza.createExpression([
+            Stanza.createAtom("c_names"),
+            ...List.map(Stanza.createAtom, l),
+          ]),
+        )
+      };
+
+    let virtualModulesD =
+      switch (virtualModulesP) {
+      | None => None
+      | Some(l) =>
+        Some(
+          Stanza.createExpression([
+            Stanza.createAtom("virtual_modules"),
+            ...List.map(Stanza.createAtom, l),
+          ]),
+        )
+      };
+
+    let mandatoryExpressions = [name, public_name];
+    let optionalExpressions = [libraries, modesD, cNamesD, virtualModulesD];
+
+    let library =
+      Stanza.createExpression([
+        Stanza.createAtom("library"),
+        ...mandatoryExpressions @ filterNone(optionalExpressions),
+      ]);
+
+    (path, DuneFile.toString([library]));
   };
 };
 
@@ -49,11 +162,6 @@ module Executable = {
   type t = {main: string};
 };
 
-type common = {
-  path: string,
-  name: string,
-  require: list(string),
-};
 type pkgType =
   | ExecutablePackage(Executable.t)
   | LibraryPackage(Library.t);
@@ -237,6 +345,18 @@ let toPesyConf = (projectPath: string, json: JSON.t): t => {
           | NullJSONValue () => None
           | e => raise(e)
           };
+        let virtualModules =
+          try (
+            Some(
+              JSON.member(conf, "virtualModules")
+              |> JSON.toValue
+              |> FieldTypes.toList
+              |> List.map(FieldTypes.toString),
+            )
+          ) {
+          | NullJSONValue () => None
+          | e => raise(e)
+          };
         {
           common: {
             name,
@@ -244,7 +364,9 @@ let toPesyConf = (projectPath: string, json: JSON.t): t => {
             require,
           },
           pkgType:
-            LibraryPackage({namespace, modes: libraryModes, cNames: cStubs}),
+            LibraryPackage(
+              Library.create(namespace, libraryModes, cStubs, virtualModules),
+            ),
         };
       };
     },
@@ -252,89 +374,12 @@ let toPesyConf = (projectPath: string, json: JSON.t): t => {
   );
 };
 
-module Stanza: {
-  type t;
-  let create: (string, t) => t;
-  let createAtom: string => t;
-  let createExpression: list(t) => t;
-  let toSexp: t => Sexplib.Sexp.t;
-} = {
-  open Sexplib.Sexp;
-  type t = Sexplib.Sexp.t;
-  let createAtom = a => Atom(a);
-  let create = (stanza: string, expression) =>
-    List([Atom(stanza), expression]);
-  let createExpression = atoms => List(atoms);
-  let toSexp = x => x;
-};
-
-module DuneFile: {let toString: list(Stanza.t) => string;} = {
-  open Sexplib.Sexp;
-  let toString = (stanzas: list(Stanza.t)) =>
-    List.fold_right(
-      (s, acc) => to_string_hum(~indent=4, Stanza.toSexp(s)) ++ acc,
-      stanzas,
-      "",
-    );
-};
 let toPackages = (_prjPath, pkgs) =>
   List.map(
     pkg => {
       let {name: pkgName, require, path} = pkg.common;
       switch (pkg.pkgType) {
-      | LibraryPackage({namespace, modes: modesP, cNames: cNamesP}) =>
-        let name = Stanza.create("name", Stanza.createAtom(namespace));
-        let public_name =
-          Stanza.create("public_name", Stanza.createAtom(pkgName));
-        let libraries =
-          switch (require) {
-          | [] => None
-          | libs =>
-            Some(
-              Stanza.createExpression([
-                Stanza.createAtom("libraries"),
-                ...List.map(r => Stanza.createAtom(r), libs),
-              ]),
-            )
-          };
-
-        let modesD =
-          switch (modesP) {
-          | None => None
-          | Some(l) =>
-            Some(
-              Stanza.createExpression([
-                Stanza.createAtom("modes"),
-                ...List.map(
-                     m => m |> Library.Mode.toString |> Stanza.createAtom,
-                     l,
-                   ),
-              ]),
-            )
-          };
-
-        let cNamesD =
-          switch (cNamesP) {
-          | None => None
-          | Some(l) =>
-            Some(
-              Stanza.createExpression([
-                Stanza.createAtom("c_names"),
-                ...List.map(Stanza.createAtom, l),
-              ]),
-            )
-          };
-
-        let mandatoryExpressions = [name, public_name];
-        let optionalExpressions = [libraries, modesD, cNamesD];
-
-        let library =
-          Stanza.createExpression([
-            Stanza.createAtom("library"),
-            ...mandatoryExpressions @ filterNone(optionalExpressions),
-          ]);
-
-        (path, DuneFile.toString([library]));
+      | LibraryPackage(l) => Library.toDuneStanza(pkg.common, l)
       | ExecutablePackage({main}) =>
         let name = Stanza.create("name", Stanza.createAtom(main));
         let public_name =
@@ -462,6 +507,28 @@ let%expect_test _ = {
   %expect
   {|
      (library (name Foo) (public_name bar.lib) (libraries foo) (c_names stubs))
+   |};
+};
+
+let%expect_test _ = {
+  let duneFiles =
+    testToPackages(
+      {|
+  {
+    "buildDirs": {
+      "testlib": {
+        "namespace": "Foo",
+        "name": "bar.lib",
+        "virtualModules": ["foo"]
+      }
+    }
+  }
+       |},
+    );
+  List.iter(print_endline, duneFiles);
+  %expect
+  {|
+     (library (name Foo) (public_name bar.lib) (virtual_modules foo))
    |};
 };
 
