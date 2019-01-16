@@ -29,42 +29,51 @@ module DuneFile: {let toString: list(Stanza.t) => string;} = {
     );
 };
 
+type ds = {
+  public_name: Stanza.t,
+  libraries: option(Stanza.t),
+  flags: option(Stanza.t),
+};
 module Common: {
   type t;
-  let toDuneStanzas: t => (Stanza.t, option(Stanza.t));
+  let toDuneStanzas: t => ds;
   let getPath: t => string;
-  let create: (string, string, list(string)) => t;
+  let create: (string, string, list(string), option(list(string))) => t;
 } = {
   type t = {
     path: string,
     name: string,
     require: list(string),
-    /* flags: option(list(string)), */
+    flags: option(list(string)) /* TODO: Use a variant instead since flags only accept a set of values and not any list of strings */
   };
-  let create = (name, path, require) => {name, path, require};
-  type ds = {
-    public_name: Stanza.t,
-    libraries: option(Stanza.t),
-  };
+  let create = (name, path, require, flags) => {name, path, require, flags};
   let toDuneStanzas = c => {
-    let {name, require, _} = c;
-    (
-      /* public_name: */ Stanza.create(
-        "public_name",
-        Stanza.createAtom(name),
-      ),
-      /*libraries:*/
-      switch (require) {
-      | [] => None
-      | libs =>
-        Some(
-          Stanza.createExpression([
-            Stanza.createAtom("libraries"),
-            ...List.map(r => Stanza.createAtom(r), libs),
-          ]),
-        )
-      },
-    );
+    let {name, require, flags, _} = c;
+    {
+      public_name: Stanza.create("public_name", Stanza.createAtom(name)),
+      libraries:
+        switch (require) {
+        | [] => None
+        | libs =>
+          Some(
+            Stanza.createExpression([
+              Stanza.createAtom("libraries"),
+              ...List.map(r => Stanza.createAtom(r), libs),
+            ]),
+          )
+        },
+      flags:
+        switch (flags) {
+        | None => None
+        | Some(l) =>
+          Some(
+            Stanza.createExpression([
+              Stanza.createAtom("flags"),
+              ...List.map(f => Stanza.createAtom(f), l),
+            ]),
+          )
+        },
+    };
   };
   let getPath = c => c.path;
 };
@@ -133,7 +142,7 @@ module Library: {
       implements: implementsP,
       wrapped: wrappedP,
     } = lib;
-    let (public_name, libraries) = Common.toDuneStanzas(common);
+    let {public_name, libraries, flags} = Common.toDuneStanzas(common);
     let path = Common.getPath(common);
     let name = Stanza.create("name", Stanza.createAtom(namespace));
 
@@ -205,6 +214,7 @@ module Library: {
       virtualModulesD,
       implementsD,
       wrappedD,
+      flags,
     ];
 
     let library =
@@ -309,7 +319,7 @@ module Executable: {
   let toDuneStanza = (common: Common.t, e) => {
     /* let {name: pkgName, require, path} = common; */
     let {main, modes: modesP} = e;
-    let (public_name, libraries) = Common.toDuneStanzas(common);
+    let {public_name, libraries, flags} = Common.toDuneStanzas(common);
     let path = Common.getPath(common);
     let name = Stanza.create("name", Stanza.createAtom(main));
     /* let public_name = */
@@ -340,7 +350,7 @@ module Executable: {
       };
 
     let mandatoryExpressions = [name, public_name];
-    let optionalExpressions = [libraries, modesD];
+    let optionalExpressions = [libraries, modesD, flags];
 
     let executable =
       Stanza.createExpression([
@@ -515,6 +525,18 @@ let toPesyConf = (projectPath: string, json: JSON.t): t => {
         | _ => []
         };
 
+      let flags =
+        try (
+          Some(
+            JSON.member(conf, "flags")
+            |> JSON.toValue
+            |> FieldTypes.toList
+            |> List.map(FieldTypes.toString),
+          )
+        ) {
+        | _ => None
+        };
+
       let suffix = getSuffix(name);
 
       switch (suffix) {
@@ -536,7 +558,8 @@ let toPesyConf = (projectPath: string, json: JSON.t): t => {
           | e => raise(e)
           };
         {
-          common: Common.create(name, Path.(projectPath / dir), require),
+          common:
+            Common.create(name, Path.(projectPath / dir), require, flags),
           pkgType: ExecutablePackage(Executable.create(main, modes)),
         };
       | _ =>
@@ -605,7 +628,8 @@ let toPesyConf = (projectPath: string, json: JSON.t): t => {
           | e => raise(e)
           };
         {
-          common: Common.create(name, Path.(projectPath / dir), require),
+          common:
+            Common.create(name, Path.(projectPath / dir), require, flags),
           pkgType:
             LibraryPackage(
               Library.create(
@@ -819,28 +843,28 @@ let%expect_test _ = {
    |};
 };
 
-/* let%expect_test _ = { */
-/*   let duneFiles = */
-/*     testToPackages( */
-/*       {| */
-         /*   { */
-         /*     "buildDirs": { */
-         /*       "testlib": { */
-         /*         "require": ["foo"], */
-         /*         "namespace": "Foo", */
-         /*         "name": "bar.lib", */
-         /*         "flags": ["-w", "-33+9"] */
-         /*       } */
-         /*     } */
-         /*   } */
-         /*        |}, */
-/*     ); */
-/*   List.iter(print_endline, duneFiles); */
-/*   %expect */
-/*   {| */
-     /*      (library (name Foo) (public_name bar.lib) (libraries foo) (flags -w -33+9)) */
-     /*    |}; */
-/* }; */
+let%expect_test _ = {
+  let duneFiles =
+    testToPackages(
+      {|
+           {
+             "buildDirs": {
+               "testlib": {
+                 "require": ["foo"],
+                 "namespace": "Foo",
+                 "name": "bar.lib",
+                 "flags": ["-w", "-33+9"]
+               }
+             }
+           }
+                |},
+    );
+  List.iter(print_endline, duneFiles);
+  %expect
+  {|
+          (library (name Foo) (public_name bar.lib) (libraries foo) (flags -w -33+9))
+        |};
+};
 
 /* let printAsciiTree = pesyConf => { */
 /*   let%lwt _ = */
