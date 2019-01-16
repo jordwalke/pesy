@@ -4,16 +4,18 @@ type t = {
   require: list(string),
   flags: option(list(string)), /* TODO: Use a variant instead since flags only accept a set of values and not any list of strings */
   ocamlcFlags: option(list(string)),
+  ocamloptFlags: option(list(string)),
 };
-let create = (name, path, require, flags, ocamlcFlags) => {
+let create = (name, path, require, flags, ocamlcFlags, ocamloptFlags) => {
   name,
   path,
   require,
   flags,
   ocamlcFlags,
+  ocamloptFlags,
 };
 let toDuneStanzas = c => {
-  let {name, require, flags, ocamlcFlags, _} = c;
+  let {name, require, flags, ocamlcFlags, ocamloptFlags, _} = c;
   (
     /* public_name: */ Stanza.create("public_name", Stanza.createAtom(name)),
     /* libraries: */
@@ -45,6 +47,17 @@ let toDuneStanzas = c => {
       Some(
         Stanza.createExpression([
           Stanza.createAtom("ocamlc_flags"),
+          ...List.map(f => Stanza.createAtom(f), l),
+        ]),
+      )
+    },
+    /* ocamloptFlags */
+    switch (ocamloptFlags) {
+    | None => None
+    | Some(l) =>
+      Some(
+        Stanza.createExpression([
+          Stanza.createAtom("ocamlopt_flags"),
           ...List.map(f => Stanza.createAtom(f), l),
         ]),
       )

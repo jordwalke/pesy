@@ -68,7 +68,7 @@ module Library: {
       implements: implementsP,
       wrapped: wrappedP,
     } = lib;
-    let (public_name, libraries, flags, ocamlcFlags) =
+    let (public_name, libraries, flags, ocamlcFlags, ocamloptFlags) =
       Common.toDuneStanzas(common);
     let path = Common.getPath(common);
     let name = Stanza.create("name", Stanza.createAtom(namespace));
@@ -143,6 +143,7 @@ module Library: {
       wrappedD,
       flags,
       ocamlcFlags,
+      ocamloptFlags,
     ];
 
     let library =
@@ -247,7 +248,7 @@ module Executable: {
   let toDuneStanza = (common: Common.t, e) => {
     /* let {name: pkgName, require, path} = common; */
     let {main, modes: modesP} = e;
-    let (public_name, libraries, flags, ocamlcFlags) =
+    let (public_name, libraries, flags, ocamlcFlags, ocamloptFlags) =
       Common.toDuneStanzas(common);
     let path = Common.getPath(common);
     let name = Stanza.create("name", Stanza.createAtom(main));
@@ -279,7 +280,13 @@ module Executable: {
       };
 
     let mandatoryExpressions = [name, public_name];
-    let optionalExpressions = [libraries, modesD, flags, ocamlcFlags];
+    let optionalExpressions = [
+      libraries,
+      modesD,
+      flags,
+      ocamlcFlags,
+      ocamloptFlags,
+    ];
 
     let executable =
       Stanza.createExpression([
@@ -478,6 +485,18 @@ let toPesyConf = (projectPath: string, json: JSON.t): t => {
         | _ => None
         };
 
+      let ocamloptFlags =
+        try (
+          Some(
+            JSON.member(conf, "ocamloptFlags")
+            |> JSON.toValue
+            |> FieldTypes.toList
+            |> List.map(FieldTypes.toString),
+          )
+        ) {
+        | _ => None
+        };
+
       let suffix = getSuffix(name);
 
       switch (suffix) {
@@ -506,6 +525,7 @@ let toPesyConf = (projectPath: string, json: JSON.t): t => {
               require,
               flags,
               ocamlcFlags,
+              ocamloptFlags,
             ),
           pkgType: ExecutablePackage(Executable.create(main, modes)),
         };
@@ -582,6 +602,7 @@ let toPesyConf = (projectPath: string, json: JSON.t): t => {
               require,
               flags,
               ocamlcFlags,
+              ocamloptFlags,
             ),
           pkgType:
             LibraryPackage(
@@ -838,5 +859,28 @@ let%expect_test _ = {
   %expect
   {|
      (library (name Foo) (public_name bar.lib) (ocamlc_flags -annot -c))
+   |};
+};
+
+let%expect_test _ = {
+  let duneFiles =
+    testToPackages(
+      {|
+           {
+             "buildDirs": {
+               "testlib": {
+                 "namespace": "Foo",
+                 "name": "bar.lib",
+                 "ocamloptFlags": ["-rectypes", "-nostdlib"]
+               }
+             }
+           }
+                |},
+    );
+  List.iter(print_endline, duneFiles);
+  %expect
+  {|
+     (library (name Foo) (public_name bar.lib)
+         (ocamlopt_flags -rectypes -nostdlib))
    |};
 };
