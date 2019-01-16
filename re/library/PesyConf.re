@@ -68,7 +68,15 @@ module Library: {
       implements: implementsP,
       wrapped: wrappedP,
     } = lib;
-    let (public_name, libraries, flags, ocamlcFlags, ocamloptFlags, jsooFlags) =
+    let (
+      public_name,
+      libraries,
+      flags,
+      ocamlcFlags,
+      ocamloptFlags,
+      jsooFlags,
+      preprocess,
+    ) =
       Common.toDuneStanzas(common);
     let path = Common.getPath(common);
     let name = Stanza.create("name", Stanza.createAtom(namespace));
@@ -145,6 +153,7 @@ module Library: {
       ocamlcFlags,
       ocamloptFlags,
       jsooFlags,
+      preprocess,
     ];
 
     let library =
@@ -249,7 +258,15 @@ module Executable: {
   let toDuneStanza = (common: Common.t, e) => {
     /* let {name: pkgName, require, path} = common; */
     let {main, modes: modesP} = e;
-    let (public_name, libraries, flags, ocamlcFlags, ocamloptFlags, jsooFlags) =
+    let (
+      public_name,
+      libraries,
+      flags,
+      ocamlcFlags,
+      ocamloptFlags,
+      jsooFlags,
+      preprocess,
+    ) =
       Common.toDuneStanzas(common);
     let path = Common.getPath(common);
     let name = Stanza.create("name", Stanza.createAtom(main));
@@ -288,6 +305,7 @@ module Executable: {
       ocamlcFlags,
       ocamloptFlags,
       jsooFlags,
+      preprocess,
     ];
 
     let executable =
@@ -511,6 +529,18 @@ let toPesyConf = (projectPath: string, json: JSON.t): t => {
         | _ => None
         };
 
+      let preprocess =
+        try (
+          Some(
+            JSON.member(conf, "preprocess")
+            |> JSON.toValue
+            |> FieldTypes.toList
+            |> List.map(FieldTypes.toString),
+          )
+        ) {
+        | _ => None
+        };
+
       let suffix = getSuffix(name);
 
       switch (suffix) {
@@ -541,6 +571,7 @@ let toPesyConf = (projectPath: string, json: JSON.t): t => {
               ocamlcFlags,
               ocamloptFlags,
               jsooFlags,
+              preprocess,
             ),
           pkgType: ExecutablePackage(Executable.create(main, modes)),
         };
@@ -619,6 +650,7 @@ let toPesyConf = (projectPath: string, json: JSON.t): t => {
               ocamlcFlags,
               ocamloptFlags,
               jsooFlags,
+              preprocess,
             ),
           pkgType:
             LibraryPackage(
@@ -920,5 +952,27 @@ let%expect_test _ = {
   %expect
   {|
      (library (name Foo) (public_name bar.lib) (js_of_ocaml -pretty -no-inline))
+   |};
+};
+
+let%expect_test _ = {
+  let duneFiles =
+    testToPackages(
+      {|
+           {
+             "buildDirs": {
+               "testlib": {
+                 "namespace": "Foo",
+                 "name": "bar.lib",
+                 "preprocess": [ "pps", "lwt_ppx" ]
+               }
+             }
+           }
+                |},
+    );
+  List.iter(print_endline, duneFiles);
+  %expect
+  {|
+     (library (name Foo) (public_name bar.lib) (preprocess (pps lwt_ppx)))
    |};
 };

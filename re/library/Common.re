@@ -6,9 +6,19 @@ type t = {
   ocamlcFlags: option(list(string)),
   ocamloptFlags: option(list(string)),
   jsooFlags: option(list(string)),
+  preprocess: option(list(string)),
 };
 let create =
-    (name, path, require, flags, ocamlcFlags, ocamloptFlags, jsooFlags) => {
+    (
+      name,
+      path,
+      require,
+      flags,
+      ocamlcFlags,
+      ocamloptFlags,
+      jsooFlags,
+      preprocess,
+    ) => {
   name,
   path,
   require,
@@ -16,9 +26,19 @@ let create =
   ocamlcFlags,
   ocamloptFlags,
   jsooFlags,
+  preprocess,
 };
 let toDuneStanzas = c => {
-  let {name, require, flags, ocamlcFlags, ocamloptFlags, jsooFlags, _} = c;
+  let {
+    name,
+    require,
+    flags,
+    ocamlcFlags,
+    ocamloptFlags,
+    jsooFlags,
+    preprocess,
+    _,
+  } = c;
   (
     /* public_name: */ Stanza.create("public_name", Stanza.createAtom(name)),
     /* libraries: */
@@ -73,6 +93,17 @@ let toDuneStanzas = c => {
         Stanza.createExpression([
           Stanza.createAtom("js_of_ocaml"),
           ...List.map(f => Stanza.createAtom(f), l),
+        ]),
+      )
+    },
+    /* preprocess */
+    switch (preprocess) {
+    | None => None
+    | Some(l) =>
+      Some(
+        Stanza.createExpression([
+          Stanza.createAtom("preprocess"),
+          Stanza.createExpression(List.map(f => Stanza.createAtom(f), l)),
         ]),
       )
     },

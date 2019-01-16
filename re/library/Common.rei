@@ -8,6 +8,7 @@ let toDuneStanzas:
     option(Stanza.t),
     option(Stanza.t),
     option(Stanza.t),
+    option(Stanza.t),
   );
 let getPath: t => string;
 let create:
@@ -18,6 +19,7 @@ let create:
     /* flags */ option(list(string)),
     /* Ocamlc flags */ option(list(string)),
     /* Ocamlopt flags */ option(list(string)),
-    /* jsoo flags */ option(list(string))
+    /* jsoo flags */ option(list(string)),
+    /* preprocess */ option(list(string))
   ) =>
   t;
