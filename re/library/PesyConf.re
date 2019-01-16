@@ -68,7 +68,8 @@ module Library: {
       implements: implementsP,
       wrapped: wrappedP,
     } = lib;
-    let (public_name, libraries, flags) = Common.toDuneStanzas(common);
+    let (public_name, libraries, flags, ocamlcFlags) =
+      Common.toDuneStanzas(common);
     let path = Common.getPath(common);
     let name = Stanza.create("name", Stanza.createAtom(namespace));
 
@@ -141,6 +142,7 @@ module Library: {
       implementsD,
       wrappedD,
       flags,
+      ocamlcFlags,
     ];
 
     let library =
@@ -245,7 +247,8 @@ module Executable: {
   let toDuneStanza = (common: Common.t, e) => {
     /* let {name: pkgName, require, path} = common; */
     let {main, modes: modesP} = e;
-    let (public_name, libraries, flags) = Common.toDuneStanzas(common);
+    let (public_name, libraries, flags, ocamlcFlags) =
+      Common.toDuneStanzas(common);
     let path = Common.getPath(common);
     let name = Stanza.create("name", Stanza.createAtom(main));
     /* let public_name = */
@@ -276,7 +279,7 @@ module Executable: {
       };
 
     let mandatoryExpressions = [name, public_name];
-    let optionalExpressions = [libraries, modesD, flags];
+    let optionalExpressions = [libraries, modesD, flags, ocamlcFlags];
 
     let executable =
       Stanza.createExpression([
@@ -463,6 +466,18 @@ let toPesyConf = (projectPath: string, json: JSON.t): t => {
         | _ => None
         };
 
+      let ocamlcFlags =
+        try (
+          Some(
+            JSON.member(conf, "ocamlcFlags")
+            |> JSON.toValue
+            |> FieldTypes.toList
+            |> List.map(FieldTypes.toString),
+          )
+        ) {
+        | _ => None
+        };
+
       let suffix = getSuffix(name);
 
       switch (suffix) {
@@ -485,7 +500,13 @@ let toPesyConf = (projectPath: string, json: JSON.t): t => {
           };
         {
           common:
-            Common.create(name, Path.(projectPath / dir), require, flags),
+            Common.create(
+              name,
+              Path.(projectPath / dir),
+              require,
+              flags,
+              ocamlcFlags,
+            ),
           pkgType: ExecutablePackage(Executable.create(main, modes)),
         };
       | _ =>
@@ -555,7 +576,13 @@ let toPesyConf = (projectPath: string, json: JSON.t): t => {
           };
         {
           common:
-            Common.create(name, Path.(projectPath / dir), require, flags),
+            Common.create(
+              name,
+              Path.(projectPath / dir),
+              require,
+              flags,
+              ocamlcFlags,
+            ),
           pkgType:
             LibraryPackage(
               Library.create(
@@ -788,56 +815,28 @@ let%expect_test _ = {
   List.iter(print_endline, duneFiles);
   %expect
   {|
-          (library (name Foo) (public_name bar.lib) (libraries foo) (flags -w -33+9))
-        |};
+     (library (name Foo) (public_name bar.lib) (libraries foo) (flags -w -33+9))
+   |};
 };
 
-/* let printAsciiTree = pesyConf => { */
-/*   let%lwt _ = */
-/*     LTerm.printls( */
-/*       LTerm_text.of_string( */
-/*         renderAsciiTree( */
-/*           "test", */
-/*           spf("name:    %s", testMainModuleName), */
-/*           spf("main:    %s", testMainModule), */
-/*           spf( */
-/*             "require: %s", */
-/*             List.fold_left((acc, e) => acc ++ " " ++ e, "", testRequire), */
-/*           ), */
-/*           false, */
-/*         ), */
-/*       ), */
-/*     ); */
-
-/*   let%lwt _ = */
-/*     LTerm.printls( */
-/*       LTerm_text.of_string( */
-/*         renderAsciiTree( */
-/*           "library", */
-/*           spf("name:      %s", libName), */
-/*           spf("namespace: %s", libNamespace), */
-/*           spf( */
-/*             "require:   %s", */
-/*             List.fold_left((acc, e) => acc ++ " " ++ e, "", libRequire), */
-/*           ), */
-/*           false, */
-/*         ), */
-/*       ), */
-/*     ); */
-
-/*   let%lwt _ = */
-/*     LTerm.printls( */
-/*       LTerm_text.of_string( */
-/*         renderAsciiTree( */
-/*           "executable", */
-/*           spf("name:      %s", binName), */
-/*           spf("main:      %s", binMain), */
-/*           spf( */
-/*             "require:   %s", */
-/*             List.fold_left((acc, e) => acc ++ " " ++ e, "", binRequire), */
-/*           ), */
-/*           true, */
-/*         ), */
-/*       ), */
-/*     ); */
-/* } */
+let%expect_test _ = {
+  let duneFiles =
+    testToPackages(
+      {|
+           {
+             "buildDirs": {
+               "testlib": {
+                 "namespace": "Foo",
+                 "name": "bar.lib",
+                 "ocamlcFlags": ["-annot", "-c"]
+               }
+             }
+           }
+                |},
+    );
+  List.iter(print_endline, duneFiles);
+  %expect
+  {|
+     (library (name Foo) (public_name bar.lib) (ocamlc_flags -annot -c))
+   |};
+};
