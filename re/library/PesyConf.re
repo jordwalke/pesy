@@ -68,7 +68,7 @@ module Library: {
       implements: implementsP,
       wrapped: wrappedP,
     } = lib;
-    let (public_name, libraries, flags, ocamlcFlags, ocamloptFlags) =
+    let (public_name, libraries, flags, ocamlcFlags, ocamloptFlags, jsooFlags) =
       Common.toDuneStanzas(common);
     let path = Common.getPath(common);
     let name = Stanza.create("name", Stanza.createAtom(namespace));
@@ -144,6 +144,7 @@ module Library: {
       flags,
       ocamlcFlags,
       ocamloptFlags,
+      jsooFlags,
     ];
 
     let library =
@@ -248,7 +249,7 @@ module Executable: {
   let toDuneStanza = (common: Common.t, e) => {
     /* let {name: pkgName, require, path} = common; */
     let {main, modes: modesP} = e;
-    let (public_name, libraries, flags, ocamlcFlags, ocamloptFlags) =
+    let (public_name, libraries, flags, ocamlcFlags, ocamloptFlags, jsooFlags) =
       Common.toDuneStanzas(common);
     let path = Common.getPath(common);
     let name = Stanza.create("name", Stanza.createAtom(main));
@@ -286,6 +287,7 @@ module Executable: {
       flags,
       ocamlcFlags,
       ocamloptFlags,
+      jsooFlags,
     ];
 
     let executable =
@@ -497,6 +499,18 @@ let toPesyConf = (projectPath: string, json: JSON.t): t => {
         | _ => None
         };
 
+      let jsooFlags =
+        try (
+          Some(
+            JSON.member(conf, "jsooFlags")
+            |> JSON.toValue
+            |> FieldTypes.toList
+            |> List.map(FieldTypes.toString),
+          )
+        ) {
+        | _ => None
+        };
+
       let suffix = getSuffix(name);
 
       switch (suffix) {
@@ -526,6 +540,7 @@ let toPesyConf = (projectPath: string, json: JSON.t): t => {
               flags,
               ocamlcFlags,
               ocamloptFlags,
+              jsooFlags,
             ),
           pkgType: ExecutablePackage(Executable.create(main, modes)),
         };
@@ -603,6 +618,7 @@ let toPesyConf = (projectPath: string, json: JSON.t): t => {
               flags,
               ocamlcFlags,
               ocamloptFlags,
+              jsooFlags,
             ),
           pkgType:
             LibraryPackage(
@@ -882,5 +898,27 @@ let%expect_test _ = {
   {|
      (library (name Foo) (public_name bar.lib)
          (ocamlopt_flags -rectypes -nostdlib))
+   |};
+};
+
+let%expect_test _ = {
+  let duneFiles =
+    testToPackages(
+      {|
+           {
+             "buildDirs": {
+               "testlib": {
+                 "namespace": "Foo",
+                 "name": "bar.lib",
+                 "jsooFlags": ["-pretty", "-no-inline"]
+               }
+             }
+           }
+                |},
+    );
+  List.iter(print_endline, duneFiles);
+  %expect
+  {|
+     (library (name Foo) (public_name bar.lib) (js_of_ocaml -pretty -no-inline))
    |};
 };
