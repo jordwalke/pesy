@@ -23,6 +23,12 @@ let bootstrapIfNecessary = projectPath =>
     let utilRe = loadTemplate("pesy-Util.template.re");
     let readMeTemplate = loadTemplate("pesy-README.template.md");
     let gitignoreTemplate = loadTemplate("pesy-gitignore.template");
+    let esyBuildStepsTemplate =
+      loadTemplate(
+        Path.(
+          "azure-pipeline-templates" / "pesy-esy-build-steps.template.yml"
+        ),
+      );
     let packageLibName = packageNameKebabSansScope ++ ".lib";
 
     if (!exists("package.json")) {
@@ -102,6 +108,32 @@ let bootstrapIfNecessary = projectPath =>
              packageNameUpperCamelCase,
            );
       write(".gitignore", gitignore);
+    };
+
+    let azurePipelinesPath = Path.(projectPath / "azure-pipelines.yml");
+
+    if (!exists(azurePipelinesPath)) {
+      let esyBuildSteps =
+        esyBuildStepsTemplate
+        |> Str.global_replace(
+             r("<PACKAGE_NAME_UPPER_CAMEL>"),
+             packageNameUpperCamelCase,
+           );
+      copyTemplate(
+        Path.("azure-pipeline-templates" / "pesy-azure-pipelines.yml"),
+        Path.(projectPath / "azure-pipelines.yml"),
+      );
+      mkdirp(".ci");
+      let ciFilesPath = Path.(projectPath / ".ci");
+      write(Path.(ciFilesPath / "esy-build-steps.yml"), esyBuildSteps);
+      copyTemplate(
+        Path.("azure-pipeline-templates" / "pesy-publish-build-cache.yml"),
+        Path.(ciFilesPath / "publish-build-cache.yml"),
+      );
+      copyTemplate(
+        Path.("azure-pipeline-templates" / "pesy-restore-build-cache.yml"),
+        Path.(ciFilesPath / "restore-build-cache.yml"),
+      );
     };
 
     let libKebab = packageNameKebabSansScope;
