@@ -76,6 +76,7 @@ module Library: {
       ocamloptFlags,
       jsooFlags,
       preprocess,
+      includeSubdirs,
     ) =
       Common.toDuneStanzas(common);
     let path = Common.getPath(common);
@@ -154,6 +155,7 @@ module Library: {
       ocamloptFlags,
       jsooFlags,
       preprocess,
+      includeSubdirs,
     ];
 
     let library =
@@ -266,6 +268,7 @@ module Executable: {
       ocamloptFlags,
       jsooFlags,
       preprocess,
+      includeSubdirs,
     ) =
       Common.toDuneStanzas(common);
     let path = Common.getPath(common);
@@ -306,6 +309,7 @@ module Executable: {
       ocamloptFlags,
       jsooFlags,
       preprocess,
+      includeSubdirs,
     ];
 
     let executable =
@@ -541,6 +545,18 @@ let toPesyConf = (projectPath: string, json: JSON.t): t => {
         | _ => None
         };
 
+      let includeSubdirs =
+        try (
+          Some(
+            JSON.member(conf, "includeSubdirs")
+            |> JSON.toValue
+            |> FieldTypes.toString,
+          )
+        ) {
+        | NullJSONValue(_) => None
+        | e => raise(e)
+        };
+
       let suffix = getSuffix(name);
 
       switch (suffix) {
@@ -572,6 +588,7 @@ let toPesyConf = (projectPath: string, json: JSON.t): t => {
               ocamloptFlags,
               jsooFlags,
               preprocess,
+              includeSubdirs,
             ),
           pkgType: ExecutablePackage(Executable.create(main, modes)),
         };
@@ -651,6 +668,7 @@ let toPesyConf = (projectPath: string, json: JSON.t): t => {
               ocamloptFlags,
               jsooFlags,
               preprocess,
+              includeSubdirs,
             ),
           pkgType:
             LibraryPackage(
@@ -974,5 +992,27 @@ let%expect_test _ = {
   %expect
   {|
      (library (name Foo) (public_name bar.lib) (preprocess (pps lwt_ppx)))
+   |};
+};
+
+let%expect_test _ = {
+  let duneFiles =
+    testToPackages(
+      {|
+           {
+             "buildDirs": {
+               "testlib": {
+                 "namespace": "Foo",
+                 "name": "bar.lib",
+                 "includeSubdirs": "unqualified"
+               }
+             }
+           }
+                |},
+    );
+  List.iter(print_endline, duneFiles);
+  %expect
+  {|
+     (library (name Foo) (public_name bar.lib) (include_subdirs unqualified))
    |};
 };

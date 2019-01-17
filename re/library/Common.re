@@ -1,3 +1,8 @@
+exception InvalidSubDirs(string);
+type include_subdirs =
+  | No
+  | Unqualified;
+
 type t = {
   path: string,
   name: string,
@@ -7,6 +12,7 @@ type t = {
   ocamloptFlags: option(list(string)),
   jsooFlags: option(list(string)),
   preprocess: option(list(string)),
+  includeSubdirs: option(include_subdirs),
 };
 let create =
     (
@@ -18,15 +24,29 @@ let create =
       ocamloptFlags,
       jsooFlags,
       preprocess,
+      includeSubdirs,
     ) => {
-  name,
-  path,
-  require,
-  flags,
-  ocamlcFlags,
-  ocamloptFlags,
-  jsooFlags,
-  preprocess,
+  let includeSubDirsSafe =
+    switch (includeSubdirs) {
+    | Some(x) =>
+      switch (x) {
+      | "no" => Some(No)
+      | "unqualified" => Some(Unqualified)
+      | _ => raise(InvalidSubDirs(x))
+      }
+    | None => None
+    };
+  {
+    name,
+    path,
+    require,
+    flags,
+    ocamlcFlags,
+    ocamloptFlags,
+    jsooFlags,
+    preprocess,
+    includeSubdirs: includeSubDirsSafe,
+  };
 };
 let toDuneStanzas = c => {
   let {
@@ -37,6 +57,7 @@ let toDuneStanzas = c => {
     ocamloptFlags,
     jsooFlags,
     preprocess,
+    includeSubdirs,
     _,
   } = c;
   (
@@ -104,6 +125,22 @@ let toDuneStanzas = c => {
         Stanza.createExpression([
           Stanza.createAtom("preprocess"),
           Stanza.createExpression(List.map(f => Stanza.createAtom(f), l)),
+        ]),
+      )
+    },
+    /* includeSubdirs */
+    switch (includeSubdirs) {
+    | None => None
+    | Some(v) =>
+      Some(
+        Stanza.createExpression([
+          Stanza.createAtom("include_subdirs"),
+          Stanza.createAtom(
+            switch (v) {
+            | No => "no"
+            | Unqualified => "unqualified"
+            },
+          ),
         ]),
       )
     },

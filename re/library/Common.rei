@@ -1,8 +1,10 @@
+type include_subdirs;
 type t;
 let toDuneStanzas:
   t =>
   (
     Stanza.t,
+    option(Stanza.t),
     option(Stanza.t),
     option(Stanza.t),
     option(Stanza.t),
@@ -20,6 +22,7 @@ let create:
     /* Ocamlc flags */ option(list(string)),
     /* Ocamlopt flags */ option(list(string)),
     /* jsoo flags */ option(list(string)),
-    /* preprocess */ option(list(string))
+    /* preprocess */ option(list(string)),
+    /* include subdirs */ option(string)
   ) =>
   t;
