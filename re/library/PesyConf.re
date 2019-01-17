@@ -313,7 +313,9 @@ module Executable: {
         Some(
           Stanza.createExpression([
             Stanza.createAtom("modes"),
-            ...m |> Mode.toList |> List.map(Stanza.createAtom),
+            Stanza.createExpression(
+              m |> Mode.toList |> List.map(Stanza.createAtom),
+            ),
           ]),
         )
       };
@@ -939,7 +941,7 @@ let%expect_test _ = {
   List.iter(print_endline, duneFiles);
   %expect
   {|
-     (executable (name Foo) (public_name bar.exe) (modes best c))
+     (executable (name Foo) (public_name bar.exe) (modes (best c)))
    |};
 };
 

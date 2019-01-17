@@ -15,7 +15,7 @@
       "overrides": [],
       "dependencies": [
         "ocaml@4.6.9@d41d8cd9", "@opam/re@opam:1.7.3@83095efd",
-        "@opam/dune@opam:1.6.3@a7d7baed", "@esy-ocaml/reason@3.3.7@d41d8cd9"
+        "@opam/dune@opam:1.6.3@a7d7baed", "@esy-ocaml/reason@3.4.0@d41d8cd9"
       ],
       "devDependencies": []
     },
@@ -36,7 +36,7 @@
         "@opam/ppx_inline_test@opam:v0.11.0@b987f92a",
         "@opam/ppx_expect@opam:v0.11.1@406d6035",
         "@opam/fpath@opam:0.7.2@45477b93", "@opam/dune@opam:1.6.3@a7d7baed",
-        "@opam/bos@opam:0.2.0@df49e63f", "@esy-ocaml/reason@3.3.7@d41d8cd9"
+        "@opam/bos@opam:0.2.0@df49e63f", "@esy-ocaml/reason@3.4.0@d41d8cd9"
       ],
       "devDependencies": [ "@opam/merlin@opam:3.2.2@829ee6dd" ]
     },
@@ -1356,14 +1356,14 @@
       "dependencies": [],
       "devDependencies": []
     },
-    "@esy-ocaml/reason@3.3.7@d41d8cd9": {
-      "id": "@esy-ocaml/reason@3.3.7@d41d8cd9",
+    "@esy-ocaml/reason@3.4.0@d41d8cd9": {
+      "id": "@esy-ocaml/reason@3.4.0@d41d8cd9",
       "name": "@esy-ocaml/reason",
-      "version": "3.3.7",
+      "version": "3.4.0",
       "source": {
         "type": "install",
         "source": [
-          "archive:https://registry.npmjs.org/@esy-ocaml/reason/-/reason-3.3.7.tgz#sha1:4d75b8876807c4178c6fff2359962066bb69d944"
+          "archive:https://registry.npmjs.org/@esy-ocaml/reason/-/reason-3.4.0.tgz#sha1:8c84c183a95d489a3e82ff0465effe4b56ff12af"
         ]
       },
       "overrides": [],

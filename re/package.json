@@ -7,10 +7,11 @@
     "buildsInSource": "_build",
     "release": {
       "bin": [ "pesy", "pesy-configure" ],
-      "includePackages": [
-        "root"
-      ]
+      "includePackages": [ "root" ]
     }
+  },
+  "scripts": {
+    "test": "esy dune runtest"
   },
   "dependencies": {
     "@esy-ocaml/reason": "*",
