@@ -13,6 +13,8 @@ type t = {
   jsooFlags: option(list(string)),
   preprocess: option(list(string)),
   includeSubdirs: option(include_subdirs),
+  rawBuildConfig: option(list(string)),
+  rawBuildConfigFooter: option(list(string)),
 };
 let create =
     (
@@ -25,6 +27,8 @@ let create =
       jsooFlags,
       preprocess,
       includeSubdirs,
+      rawBuildConfig,
+      rawBuildConfigFooter,
     ) => {
   let includeSubDirsSafe =
     switch (includeSubdirs) {
@@ -46,6 +50,8 @@ let create =
     jsooFlags,
     preprocess,
     includeSubdirs: includeSubDirsSafe,
+    rawBuildConfig,
+    rawBuildConfigFooter,
   };
 };
 let toDuneStanzas = c => {
@@ -58,6 +64,8 @@ let toDuneStanzas = c => {
     jsooFlags,
     preprocess,
     includeSubdirs,
+    rawBuildConfig,
+    rawBuildConfigFooter,
     _,
   } = c;
   (
@@ -144,6 +152,17 @@ let toDuneStanzas = c => {
         ]),
       )
     },
+    /* rawBuildConfig */
+    switch (rawBuildConfig) {
+    | None => None
+    | Some(l) => Some(l |> List.map(Stanza.ofString))
+    },
+    /* rawBuildConfig */
+    switch (rawBuildConfigFooter) {
+    | None => None
+    | Some(l) => Some(l |> List.map(Stanza.ofString))
+    },
   );
 };
+
 let getPath = c => c.path;

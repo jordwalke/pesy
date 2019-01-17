@@ -77,6 +77,8 @@ module Library: {
       jsooFlags,
       preprocess,
       includeSubdirs,
+      rawBuildConfig,
+      rawBuildConfigFooter,
     ) =
       Common.toDuneStanzas(common);
     let path = Common.getPath(common);
@@ -158,13 +160,27 @@ module Library: {
       includeSubdirs,
     ];
 
+    let rawBuildConfig =
+      switch (rawBuildConfig) {
+      | Some(l) => l
+      | None => []
+      };
+
+    let rawBuildConfigFooter =
+      switch (rawBuildConfigFooter) {
+      | Some(l) => l
+      | None => []
+      };
+
     let library =
       Stanza.createExpression([
         Stanza.createAtom("library"),
-        ...mandatoryExpressions @ filterNone(optionalExpressions),
+        ...mandatoryExpressions
+           @ filterNone(optionalExpressions)
+           @ rawBuildConfig,
       ]);
 
-    (path, DuneFile.toString([library]));
+    (path, DuneFile.toString([library, ...rawBuildConfigFooter]));
   };
 };
 
@@ -269,6 +285,8 @@ module Executable: {
       jsooFlags,
       preprocess,
       includeSubdirs,
+      rawBuildConfig,
+      rawBuildConfigFooter,
     ) =
       Common.toDuneStanzas(common);
     let path = Common.getPath(common);
@@ -312,13 +330,27 @@ module Executable: {
       includeSubdirs,
     ];
 
+    let rawBuildConfig =
+      switch (rawBuildConfig) {
+      | Some(l) => l
+      | None => []
+      };
+
+    let rawBuildConfigFooter =
+      switch (rawBuildConfigFooter) {
+      | Some(l) => l
+      | None => []
+      };
+
     let executable =
       Stanza.createExpression([
         Stanza.createAtom("executable"),
-        ...mandatoryExpressions @ filterNone(optionalExpressions),
+        ...mandatoryExpressions
+           @ filterNone(optionalExpressions)
+           @ rawBuildConfig,
       ]);
 
-    (path, DuneFile.toString([executable]));
+    (path, DuneFile.toString([executable, ...rawBuildConfigFooter]));
   };
 };
 
@@ -557,6 +589,30 @@ let toPesyConf = (projectPath: string, json: JSON.t): t => {
         | e => raise(e)
         };
 
+      let rawBuildConfig =
+        try (
+          Some(
+            JSON.member(conf, "rawBuildConfig")
+            |> JSON.toValue
+            |> FieldTypes.toList
+            |> List.map(FieldTypes.toString),
+          )
+        ) {
+        | _ => None
+        };
+
+      let rawBuildConfigFooter =
+        try (
+          Some(
+            JSON.member(conf, "rawBuildConfigFooter")
+            |> JSON.toValue
+            |> FieldTypes.toList
+            |> List.map(FieldTypes.toString),
+          )
+        ) {
+        | _ => None
+        };
+
       let suffix = getSuffix(name);
 
       switch (suffix) {
@@ -589,6 +645,8 @@ let toPesyConf = (projectPath: string, json: JSON.t): t => {
               jsooFlags,
               preprocess,
               includeSubdirs,
+              rawBuildConfig,
+              rawBuildConfigFooter,
             ),
           pkgType: ExecutablePackage(Executable.create(main, modes)),
         };
@@ -669,6 +727,8 @@ let toPesyConf = (projectPath: string, json: JSON.t): t => {
               jsooFlags,
               preprocess,
               includeSubdirs,
+              rawBuildConfig,
+              rawBuildConfigFooter,
             ),
           pkgType:
             LibraryPackage(
@@ -1014,5 +1074,79 @@ let%expect_test _ = {
   %expect
   {|
      (library (name Foo) (public_name bar.lib) (include_subdirs unqualified))
+   |};
+};
+
+let%expect_test _ = {
+  let duneFiles =
+    testToPackages(
+      {|
+           {
+             "buildDirs": {
+               "testlib": {
+                 "namespace": "Foo",
+                 "name": "bar.lib",
+                 "rawBuildConfig": [
+                   "(libraries lwt lwt.unix raw.lib)",
+                   "(preprocess (pps lwt_ppx))"
+                 ]
+               }
+             }
+           }
+                |},
+    );
+  List.iter(print_endline, duneFiles);
+  %expect
+  {|
+     (library (name Foo) (public_name bar.lib) (libraries lwt lwt.unix raw.lib)
+         (preprocess (pps lwt_ppx)))
+   |};
+};
+
+let%expect_test _ = {
+  let duneFiles =
+    testToPackages(
+      {|
+           {
+             "buildDirs": {
+               "testlib": {
+                 "namespace": "Foo",
+                 "name": "bar.lib",
+                 "rawBuildConfigFooter": [
+                   "(install (section share_root) (files (asset.txt as asset.txt)))"
+                 ]
+               }
+             }
+           }
+                |},
+    );
+  List.iter(print_endline, duneFiles);
+  %expect
+  {|
+     (library (name Foo) (public_name bar.lib)) (install (section share_root) (files (asset.txt as asset.txt)))
+   |};
+};
+
+let%expect_test _ = {
+  let duneFiles =
+    testToPackages(
+      {|
+           {
+             "buildDirs": {
+               "testexe": {
+                 "main": "Foo",
+                 "name": "Foo.exe",
+                 "rawBuildConfigFooter": [
+                   "(install (section share_root) (files (asset.txt as asset.txt)))"
+                 ]
+               }
+             }
+           }
+                |},
+    );
+  List.iter(print_endline, duneFiles);
+  %expect
+  {|
+     (executable (name Foo) (public_name Foo.exe)) (install (section share_root) (files (asset.txt as asset.txt)))
    |};
 };
