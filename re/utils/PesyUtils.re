@@ -56,13 +56,11 @@ let readFile = file => {
   while (! breakOut^) {
     let line =
       try (input_line(ic)) {
-      | End_of_file => ""
+      | End_of_file =>
+        breakOut := true;
+        "";
       };
-    if (line == "") {
-      breakOut := true;
-    } else {
-      buf := buf^ ++ "\n" ++ line;
-    };
+    buf := buf^ ++ "\n" ++ line;
   };
   buf^;
 };
@@ -82,6 +80,35 @@ let loadTemplate = name =>
       / name
     ),
   );
+
+let buffer_size = 8192;
+let buffer = Bytes.create(buffer_size);
+let copyTemplate = (input_name, output_name) => {
+  open Unix;
+  let fd_in =
+    openfile(
+      Path.(
+        (Sys.executable_name |> parent |> parent)
+        / "share"
+        / "template-repo"
+        / input_name
+      ),
+      [O_RDONLY],
+      0,
+    );
+  let fd_out = openfile(output_name, [O_WRONLY, O_CREAT, O_TRUNC], 438);
+  let rec copy_loop = () =>
+    switch (read(fd_in, buffer, 0, buffer_size)) {
+    | 0 => ()
+    | r =>
+      ignore(write(fd_out, buffer, 0, r));
+      copy_loop();
+    };
+
+  copy_loop();
+  close(fd_in);
+  close(fd_out);
+};
 
 let r = Str.regexp;
 
@@ -158,4 +185,31 @@ let runCommandWithEnv = (command, args) => {
   | (_, WSIGNALED(c)) => c
   | (_, WSTOPPED(c)) => c
   };
+};
+
+let filterNone = l => {
+  let result = ref([]);
+  let rec loop =
+    fun
+    | [] => ()
+    | [h, ...rest] => {
+        switch (h) {
+        | Some(a) => result := [a, ...result^]
+        | None => ()
+        };
+        loop(rest);
+      };
+  loop(l);
+  List.rev(result^);
+};
+
+let%expect_test _ = {
+  List.iter(
+    print_int,
+    filterNone([Some(1), None, None, Some(2), None, Some(3)]),
+  );
+  %expect
+  {|
+     123
+   |};
 };
