@@ -21,6 +21,10 @@ jobs:
   - script: esy build
     displayName: 'Building'
     workingDirectory: 're'
+  - ${{ if ne(parameters.sign, 'true') }}:
+    - script: esy test
+      displayName: 'Running inline tests'
+      workingDirectory: 're'
   - script: esy npm-release
     displayName: 'Creating npm release'
     workingDirectory: 're'
@@ -40,10 +44,18 @@ jobs:
       displayName: 'npm link... for tests'
       workingDirectory: 're/_release'
   - ${{ if eq(parameters.sign, 'false') }}:
-    - script: ./_build/install/default/bin/TestPesy.exe
+    - script: ./_build/install/default/bin/TestBootstrapper.exe
       displayName: 'Running tests'
       workingDirectory: 're'
   - ${{ if eq(parameters.sign, 'true') }}:
-    - script: .\_build\install\default\bin\TestPesy.exe
+    - script: .\_build\install\default\bin\TestBootstrapper.exe
+      displayName: 'Running tests'
+      workingDirectory: 're'
+  - ${{ if eq(parameters.sign, 'false') }}:
+    - script: ./_build/install/default/bin/TestPesyConfigure.exe
+      displayName: 'Running tests'
+      workingDirectory: 're'
+  - ${{ if eq(parameters.sign, 'true') }}:
+    - script: .\_build\install\default\bin\TestPesyConfigure.exe
       displayName: 'Running tests'
       workingDirectory: 're'
