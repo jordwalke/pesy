@@ -236,7 +236,28 @@ esy pesy
 esy build
 ```
 
+# Development
 
+```sh
+cd re/
+esy install
+esy build
+esy dune runtest # Unit tests
+```
+
+## e2e tests
+`./_build/install/default/bin` would contain (after running `esy build`) `TestBootstrapper.exe` and `TestPesyConfigure.exe` 
+to test if simple workflows work as expected. They assume both `esy` and `pesy` are installed
+globally (as on user's machines). TODO: improve error messages
+
+`run.bat` and `run.sh` inside `scripts` can be used to globally install using npm pack. Then run
+the e2e scripts.
+
+```sh
+./scripts/run.sh
+./_build/install/default/bin/TestBootstrapper.exe
+./_build/install/default/bin/TestPesyConfigure.exe
+```
 
 # Changes:
 
