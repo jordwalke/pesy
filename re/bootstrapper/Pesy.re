@@ -11,7 +11,10 @@ let userCommand =
 let projectRoot = Sys.getcwd();
 
 /* use readFileOpt to read previously computed directory path */
+printf("Bootstrapping files...");
+flush_all();
 PesyLib.bootstrapIfNecessary(projectRoot);
+print_endline("done");
 PesyLib.generateBuildFiles(projectRoot);
 
 /*  @esy-ocaml/foo-package -> foo-package */
@@ -59,7 +62,7 @@ let esyCommand =
       /* Unix.putenv("PATH", v); /\* This didn't work! *\/ */
 
       let paths = Str.split(Str.regexp(Sys.unix ? ":" : ";"), v);
-      List.iter(print_endline, paths);
+
       let npmPaths =
         List.filter(
           path => Sys.file_exists(Filename.concat(path, "esy.cmd")),
@@ -73,17 +76,18 @@ let esyCommand =
       };
     };
 
-print_endline("Running `esy install`");
-/* let esyCommand = "esy"; */
+print_endline("Running esy install...");
+
 let setupStatus = PesyUtils.runCommandWithEnv(esyCommand, [|"install"|]);
 if (setupStatus != 0) {
   fprintf(stderr, "esy (%s) install failed!", esyCommand);
   exit(-1);
 };
 
-print_endline("Running `esy build`");
+print_endline("Running esy build...");
 let setupStatus = PesyUtils.runCommandWithEnv(esyCommand, [|"build"|]);
 if (setupStatus != 0) {
   fprintf(stderr, "esy (%s) build failed!", esyCommand);
   exit(-1);
 };
+print_endline("You can now run `esy test`");

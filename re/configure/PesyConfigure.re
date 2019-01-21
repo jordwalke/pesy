@@ -41,3 +41,5 @@ switch (mode) {
   let packageJSONPath = Path.(projectRoot / "package.json");
   PesyLib.PesyConf.gen(projectRoot, packageJSONPath);
 };
+
+print_endline("Build config updated!");
