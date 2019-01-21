@@ -142,21 +142,18 @@ let bootstrapIfNecessary = projectPath =>
       write(duneProjectFile, spf({|(lang dune 1.2)
 (name %s)
 |}, libKebab));
-      fprintf(stdout, "    ☒  Generated dune-project");
     };
 
     let opamFileName = libKebab ++ ".opam";
     let opamFile = Path.(projectPath / opamFileName);
     if (!exists(opamFile)) {
       write(opamFile, "");
-      fprintf(stdout, "    ☒  Generated %s", opamFileName);
     };
 
     let rootDuneFile = Path.(projectPath / "dune");
 
     if (!exists(rootDuneFile)) {
       write(rootDuneFile, "(ignored_subdirs (node_modules))");
-      fprintf(stdout, "    ☒  Generated dune (root)");
     };
   };
 

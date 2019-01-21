@@ -767,7 +767,6 @@ let gen = (prjPath, pkgPath) => {
   List.iter(
     dpkg => {
       let (path, duneFile) = dpkg;
-      printf("Wrote (%s) \n %s\n", Path.(path / "dune"), duneFile);
       mkdirp(path);
       write(Path.(path / "dune"), duneFile);
     },
