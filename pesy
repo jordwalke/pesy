@@ -650,7 +650,7 @@ for ((i=0; i<${#ALL_DIR_TO_NAME_ARR[@]}; ++i)); do
       printf "\\n"
       printf "\\n  buildDirs.%s.name (\"%s\")\\n" "${ORIG_DIR}" "${NAME}"
       printf "\\n  %s- Name should be any-name.exe to build a binary or%s" "${YELLOW}${BOLD}" "$RESET"
-      printf "\\n  %s- Name should be %s.suffix to build a library, where 'suffix' is anything but 'exe'%s\\n\\n" "${YELLOW}${BOLD}" "${PACKAGE_NAME}" "$RESET"
+      printf "\\n  %s- Name should be NAME_OF_PROJECT.SUFFIX (e.g. %s.lib, %s.schema, etc. in this case) to build a library, where 'suffix' is anything but 'exe'%s\\n\\n" "${YELLOW}${BOLD}" "${PACKAGE_NAME}" "$RESET"
       exit 1
     fi
   fi
