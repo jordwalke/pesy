@@ -5,7 +5,12 @@
 
 ![screenshot](./images/screenshot.png "Demo")
 
-### Create New Project:
+- `pesy` : Creates a new project in the current directory.
+- `esy` : Builds the current project (just like every other `esy` project).
+- `esy pesy` : Updates your build config from `package.json` (run this any time
+  you change `package.json`).
+
+### `pesy`: Create New Project:
 
 `pesy` global command creates `esy` projects instantly inside of any directory.
 
@@ -25,38 +30,31 @@ This creates:
     requests.
 - `library/`, `executable/` and `test/` directory with starter modules.
 
-The created project uses `pesy` in its build step. As always, run `esy pesy`
-any time you update the build config in the `package.json`.
 
+### `esy`: Build The Project:
 
-Once you've created a project, you normally only ever run `esy build` on the
-command line. If you update your `package.json` `buildDirs` field, you will
-need to run `esy pesy` which will update all the project build config based on
-your `package.json` file changes. Then, you just run `esy build` as usual. You
-only need to run `esy pesy` if you change your `package.json` file.
-
-(Hopefully, this could be automatically done in the future so you only ever run
-`esy build` as usual).
-
-### Build `pesy` Project:
+Just like with any `esy` project, running `esy` from the project directory will
+build it and fetch/install any dependencies you might need.
 
 ```sh
-esy build
+esy
 ```
 
-Your project's `esy.build` field is set to `pesy`, which will run `pesy` to
-verify that all your build config is up to date before invoking the Dune build.
-It will let you know if you need to run `esy pesy` to update your build config
-from new changes to `package.json`.
+> Your project's `esy.build` field is set to `pesy`, which will run `pesy` to
+> verify that all your build config is up to date before invoking the Dune
+> build.  It will let you know if you need to run `esy pesy` to update your
+> build config from new changes to `package.json`.
 
-### Update `pesy` Project:
+### `esy pesy`: Update Build Config Based On `package.json`.
 
 ```sh
 esy pesy
 ```
 
 If you change your `buildDirs` config in `package.json`, run this command to
-update build configuration.
+update build configuration based on your latest `package.json`. If you forget
+to run this command and try to build (by running `esy`) without first running
+`esy pesy`, the build will remind you.
 
 
 
@@ -233,6 +231,14 @@ esy pesy
 esy build
 ```
 
+
+# Future Development:
+
+The next major version of `pesy` is getting even simpler and better, and has
+undergone a full native rewrite.
+
+Follow the work in its new repo:
+[https://github.com/esy/pesy](https://github.com/esy/pesy).
 
 
 # Changes:
