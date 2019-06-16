@@ -38,6 +38,7 @@
     "pesy": "*"
   },
   "devDependencies": {
+    "ocaml": "4.7.1004",
     "@opam/merlin": "*"
   }
 }

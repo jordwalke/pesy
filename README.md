@@ -237,6 +237,11 @@ esy build
 
 # Changes:
 
+**version 0.4.2  (6/16/2019)**
+
+Make new projects pin to ocaml `4.7.1004` so that it compiles with Reason,
+since we're still waiting on Reason to work with `4.8`.
+
 **version 0.4.0  (12/21/2018)**
 
 - Allow `buildDirs` to contain deeper directories such as `"path/to/my-lib": {...}"`.
