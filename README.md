@@ -1,16 +1,20 @@
 # pesy: Native Reason Project from Json.
 
-- Use `package.json` to automatically configure libraries and executables built
+> Use `package.json` to automatically configure libraries and executables built
   with Dune.
 
 ![screenshot](./images/screenshot.png "Demo")
+
+## Commands:
 
 - `pesy` : Creates a new project in the current directory.
 - `esy` : Builds the current project (just like every other `esy` project).
 - `esy pesy` : Updates your build config from `package.json` (run this any time
   you change `package.json`).
+  
+<br>
 
-### `pesy`: Create New Project:
+### `pesy` (Create New Project)
 
 `pesy` global command creates `esy` projects instantly inside of any directory.
 
@@ -31,7 +35,9 @@ This creates:
 - `library/`, `executable/` and `test/` directory with starter modules.
 
 
-### `esy`: Build The Project:
+<br>
+
+### `esy` (Build The Project)
 
 Just like with any `esy` project, running `esy` from the project directory will
 build it and fetch/install any dependencies you might need.
@@ -45,7 +51,9 @@ esy
 > build.  It will let you know if you need to run `esy pesy` to update your
 > build config from new changes to `package.json`.
 
-### `esy pesy`: Update Build Config Based On `package.json`.
+<br >
+
+### `esy pesy`: (Update Build Config Based On `package.json`)
 
 ```sh
 esy pesy
@@ -57,6 +65,7 @@ to run this command and try to build (by running `esy`) without first running
 `esy pesy`, the build will remind you.
 
 
+<br>
 
 ## Configuring:
 
