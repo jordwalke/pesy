@@ -217,30 +217,6 @@ esy pesy  # Generate the project build config from json
 esy build
 ```
 
-## Example Project:
-
-The following example project already has an example config. You can base your
-project off of this one.
-
-```sh
-npm install -g esy@next
-git clone git@github.com:jordwalke/esy-peasy-starter.git
-
-esy install
-esy pesy    # Use pesy to configure build from package.json
-esy build
-```
-
-- Change the `name` of the package, and names of libraries in `buildDirs`
-  accordingly.
-- Then rerun:
-
-```sh
-esy pesy
-esy build
-```
-
-
 # Future Development:
 
 The next major version of `pesy` is getting even simpler and better, and has
@@ -251,6 +227,10 @@ Follow the work in its new repo:
 
 
 # Changes:
+
+**version 0.4.3  (6/20/2019)**
+Moved `pesy` to a `devDependency` of all newly created projects.
+Also did the same for `refmterr`. This causes fewer package conflicts.
 
 **version 0.4.2  (6/16/2019)**
 
