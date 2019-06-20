@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "description": "My Project",
   "esy": {
-    "build": "pesy",
+    "build": "dune build -p <PACKAGE_NAME>",
+    "buildDev": "pesy",
     "release": {
       "releasedBinaries": [
         "<PACKAGE_NAME_UPPER_CAMEL>App.exe"
@@ -33,12 +34,12 @@
   "dependencies": {
     "@opam/dune": ">=1.6.0",
     "@esy-ocaml/reason": "*",
-    "refmterr": "*",
-    "ocaml": "^4.4.0",
-    "pesy": "*"
+    "ocaml": "^4.4.0"
   },
   "devDependencies": {
     "ocaml": "4.7.1004",
+    "refmterr": "*",
+    "pesy": "*",
     "@opam/merlin": "*"
   }
 }

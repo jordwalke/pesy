@@ -70,10 +70,10 @@ else
   # In update mode.
   if [ "${BUILD_STALE_PROBLEM}" == "true" ]; then
     printf "\\n  %sUpdated!%s %sNow run:%s\\n\\n" "${BOLD}${GREEN}" "${RESET}" "${BOLD}" "${RESET}"
-    printf "    esy build\\n\\n\\n"
+    printf "    esy\\n\\n\\n"
   else
     printf "\\n  %sAlready up to date!%s %sNow run:%s\\n\\n" "${BOLD}${GREEN}" "${RESET}" "${BOLD}" "${RESET}"
-    printf "      esy build\\n\\n\\n"
+    printf "      esy\\n\\n\\n"
   fi
 fi
 
